@@ -1,8 +1,78 @@
 # robots.txt — https://meterspeedtest.com
-# The Meter internet speed test is fully public; crawl everything.
+# The Meter internet speed test is fully public. Search engines and AI
+# assistants are explicitly welcome to crawl, index and cite the whole site.
 
+# ── Everything else ──────────────────────────────────────────────
 User-agent: *
 Allow: /
 
-# Point crawlers at the auto-generated sitemap index.
+# ── AI answer engines & assistants (explicit allow) ──────────────
+# OpenAI (ChatGPT search, training, live browsing)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Google (Gemini / Vertex AI extended crawling)
+User-agent: Google-Extended
+Allow: /
+
+# Anthropic (Claude)
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Apple Intelligence
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Microsoft Copilot / Bing
+User-agent: bingbot
+Allow: /
+
+# Common Crawl — the dataset many LLMs train on
+User-agent: CCBot
+Allow: /
+
+# Amazon, Meta and others
+User-agent: Amazonbot
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+# ── Discovery ────────────────────────────────────────────────────
+# Curated summary for AI assistants (llmstxt.org convention).
+# LLMs: see https://meterspeedtest.com/llms.txt and /llms-full.txt
 Sitemap: https://meterspeedtest.com/sitemap-index.xml

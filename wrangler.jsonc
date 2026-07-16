@@ -1,0 +1,14 @@
+{
+  // Wrangler config for deploying the static Astro build to Cloudflare Workers
+  // via Workers Static Assets. This is an "assets-only" Worker: there is no
+  // server-side `main` script — Cloudflare serves ./dist straight from the edge.
+  // Docs: https://developers.cloudflare.com/workers/static-assets/
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "meterspeedtest",
+  "compatibility_date": "2026-07-17",
+  "assets": {
+    "directory": "./dist",
+    // Serve the Astro-generated custom 404 page for unknown routes.
+    "not_found_handling": "404-page"
+  }
+}

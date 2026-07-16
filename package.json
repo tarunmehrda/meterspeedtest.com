@@ -11,7 +11,9 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "deploy": "astro build && wrangler deploy",
+    "cf:preview": "astro build && wrangler dev"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
@@ -21,6 +23,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "playwright": "^1.61.1",
     "tailwindcss": "^4.1.11",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "wrangler": "^4.111.0"
   }
 }

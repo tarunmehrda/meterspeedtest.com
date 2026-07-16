@@ -1,0 +1,116 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  path?: string;
+}
+
+const {
+  title = 'Meter Speed Test — Fast, Accurate Internet Speed Test',
+  description = 'Measure your internet speed in seconds. Meter tests download, upload, ping, jitter, packet loss and latency under load, then explains what your connection can actually do.',
+  path = '/',
+} = Astro.props;
+
+const site = 'https://meterspeedtest.com';
+const canonical = new URL(path, site).href;
+const ogImage = new URL('/og.svg', site).href;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Meter Speed Test',
+  url: site,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  description,
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" id="theme-color-light" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" id="theme-color-dark" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Meter Speed Test" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Fonts: preconnect + the two brand faces with a system fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+    />
+
+    <!-- Warm up the measurement origin before the test starts -->
+    <link rel="preconnect" href="https://speed.cloudflare.com" crossorigin />
+    <link rel="dns-prefetch" href="https://speed.cloudflare.com" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- No-flash theme: resolve before first paint -->
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('meter:theme');
+          var mql = window.matchMedia('(prefers-color-scheme: dark)');
+          var theme = stored || (mql.matches ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <slot />
+
+    <style>
+      .skip-link {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        z-index: 100;
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        background: var(--primary);
+        color: var(--on-primary);
+        font-size: 14px;
+        font-weight: 500;
+        transform: translateY(-160%);
+        transition: transform 0.2s var(--ease-out-quint);
+      }
+      .skip-link:focus-visible {
+        transform: translateY(0);
+      }
+    </style>
+  </body>
+</html>

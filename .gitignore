@@ -1,0 +1,29 @@
+# build output
+dist/
+.output/
+
+# dependencies
+node_modules/
+
+# astro
+.astro/
+
+# throwaway scaffolds from `npm create astro` (kept out of the real project)
+former-fusion/
+puffy-proxima/
+
+# environment
+.env
+.env.production
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# editor / os
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+Thumbs.db

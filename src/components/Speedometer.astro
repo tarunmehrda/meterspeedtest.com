@@ -1,0 +1,263 @@
+---
+import { GAUGE, arcPath, speedTicks, pointAt } from '../lib/gauge';
+
+const ticks = speedTicks();
+const path = arcPath();
+const needleTip = pointAt(0); // placeholder; rotated at runtime
+const cx = GAUGE.cx;
+const cy = GAUGE.cy;
+---
+
+<div class="gauge" data-gauge>
+  <!-- Decorative: the accessible readout is the live status region + metric cards. -->
+  <svg class="gauge__svg" viewBox="0 0 320 320" aria-hidden="true">
+    <defs>
+      <linearGradient id="gaugeGrad" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0%" class="arc-stop arc-stop--a" />
+        <stop offset="45%" class="arc-stop arc-stop--b" />
+        <stop offset="100%" class="arc-stop arc-stop--c" />
+      </linearGradient>
+      <filter id="gaugeGlow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="4" result="b" />
+        <feMerge>
+          <feMergeNode in="b" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+
+    <!-- Track -->
+    <path class="gauge__track" d={path} pathLength={GAUGE.pathLength} />
+
+    <!-- Ticks -->
+    <g class="gauge__ticks">
+      {
+        ticks.map((t) => (
+          <line
+            x1={t.inner.x.toFixed(2)}
+            y1={t.inner.y.toFixed(2)}
+            x2={t.outer.x.toFixed(2)}
+            y2={t.outer.y.toFixed(2)}
+            class={t.major ? 'tick tick--major' : 'tick'}
+          />
+        ))
+      }
+      {
+        ticks
+          .filter((t) => t.major)
+          .map((t) => (
+            <text
+              x={t.labelPos.x.toFixed(2)}
+              y={t.labelPos.y.toFixed(2)}
+              class="tick__label"
+              text-anchor="middle"
+              dominant-baseline="middle"
+            >
+              {t.label}
+            </text>
+          ))
+      }
+    </g>
+
+    <!-- Value arc (animated via stroke-dashoffset) -->
+    <path
+      id="gauge-arc"
+      class="gauge__value-arc"
+      d={path}
+      pathLength={GAUGE.pathLength}
+      stroke="url(#gaugeGrad)"
+      filter="url(#gaugeGlow)"
+    />
+
+    <!-- Needle -->
+    <g id="gauge-needle" transform={`rotate(-135 ${cx} ${cy})`}>
+      <path
+        class="gauge__needle"
+        d={`M ${cx - 3.2} ${cy} L ${cx} ${cy - (GAUGE.r - 8)} L ${cx + 3.2} ${cy} Z`}
+      />
+    </g>
+    <circle class="gauge__hub-outer" cx={cx} cy={cy} r="12" />
+    <circle class="gauge__hub" cx={cx} cy={cy} r="6" />
+  </svg>
+
+  <div class="gauge__readout">
+    <div id="gauge-phase" class="eyebrow gauge__phase">Ready</div>
+    <div class="gauge__value">
+      <span id="gauge-value" class="tnum">0.0</span>
+      <span id="gauge-unit" class="gauge__unit">Mbps</span>
+    </div>
+    <div id="gauge-sub" class="gauge__sub">Press Start to begin</div>
+  </div>
+</div>
+
+<style>
+  .gauge {
+    position: relative;
+    isolation: isolate;
+    width: min(100%, 420px);
+    aspect-ratio: 1 / 1;
+    margin-inline: auto;
+
+    /* Arc gradient per phase — morphs via stop-color transitions. */
+    --arc-a: var(--color-cyan);
+    --arc-b: var(--color-brand-blue);
+    --arc-c: var(--color-violet);
+    --glow: var(--color-brand-blue);
+  }
+  .gauge[data-phase='latency'] {
+    --arc-a: var(--color-g-ship-end);
+    --arc-b: var(--color-amber);
+    --arc-c: var(--color-g-ship-start);
+    --glow: var(--color-amber);
+  }
+  .gauge[data-phase='upload'] {
+    --arc-a: var(--color-brand-blue);
+    --arc-b: var(--color-violet);
+    --arc-c: var(--color-pink);
+    --glow: var(--color-violet);
+  }
+
+  /* Soft breathing halo behind the dial while a test runs. */
+  .gauge::before {
+    content: '';
+    position: absolute;
+    inset: 6%;
+    z-index: -1;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--glow) 16%, transparent),
+      transparent 72%
+    );
+    opacity: 0;
+    transition: opacity 0.5s var(--ease-out-quint), background 0.5s;
+  }
+  .gauge[data-state='running']::before {
+    opacity: 1;
+    animation: gaugeBreathe 2.4s ease-in-out infinite;
+  }
+  @keyframes gaugeBreathe {
+    0%,
+    100% {
+      transform: scale(0.96);
+      opacity: 0.65;
+    }
+    50% {
+      transform: scale(1.04);
+      opacity: 1;
+    }
+  }
+
+  .gauge__svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .arc-stop {
+    transition: stop-color 0.5s var(--ease-out-quint);
+  }
+  .arc-stop--a {
+    stop-color: var(--arc-a);
+  }
+  .arc-stop--b {
+    stop-color: var(--arc-b);
+  }
+  .arc-stop--c {
+    stop-color: var(--arc-c);
+  }
+
+  .gauge__track {
+    fill: none;
+    stroke: var(--track);
+    stroke-width: 14;
+    stroke-linecap: round;
+  }
+  /* No CSS transition here — the JS spring drives dashoffset every frame. */
+  .gauge__value-arc {
+    fill: none;
+    stroke-width: 14;
+    stroke-linecap: round;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+
+  .tick {
+    stroke: var(--hairline-strong);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .tick--major {
+    stroke: var(--hairline-strongest);
+    stroke-width: 2.5;
+  }
+  .tick__label {
+    fill: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .gauge__needle {
+    fill: var(--text);
+    transition: none;
+  }
+  .gauge__hub-outer {
+    fill: var(--surface);
+    stroke: var(--hairline-strong);
+    stroke-width: 1.5;
+  }
+  .gauge__hub {
+    fill: var(--text);
+  }
+
+  .gauge__readout {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    pointer-events: none;
+    padding-top: 18%;
+  }
+  .gauge__phase {
+    margin-bottom: 4px;
+    transition: color 0.2s;
+  }
+  .gauge__value {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    line-height: 1;
+  }
+  #gauge-value {
+    font-size: clamp(44px, 12vw, 68px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  .gauge__unit {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-faint);
+  }
+  .gauge__sub {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-faint);
+    max-width: 60%;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gauge::before {
+      animation: none;
+      transition: none;
+    }
+    .arc-stop {
+      transition: none;
+    }
+  }
+</style>

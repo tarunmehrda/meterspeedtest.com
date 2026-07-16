@@ -1,0 +1,1220 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import Speedometer from '../components/Speedometer.astro';
+import MetricCard from '../components/MetricCard.astro';
+---
+
+<Base>
+  <Nav />
+
+  <main id="main">
+    <!-- ───────────────────────── Shared-result banner ───────────────────────── -->
+    <div id="shared-banner" class="shared-banner" hidden>
+      <div class="container-page shared-banner__inner">
+        <span class="badge">Shared result</span>
+        <p id="shared-text" class="shared-banner__text"></p>
+        <button type="button" id="shared-dismiss" class="btn btn-secondary btn-sm">
+          Run My Own Test
+        </button>
+      </div>
+    </div>
+
+    <!-- ───────────────────────────────── Hero / Test ───────────────────────────────── -->
+    <section class="hero" id="top">
+      <div class="hero__mesh mesh" aria-hidden="true"></div>
+      <div class="container-page hero__inner">
+        <div class="hero__intro">
+          <span class="badge hero__badge">
+            <span class="dot" aria-hidden="true"></span>
+            Real-time · No sign-up · Private
+          </span>
+          <h1 class="hero__title">
+            Know exactly how fast<br />your internet <span class="text-gradient">really</span> is.
+          </h1>
+          <p class="hero__lead">
+            Meter measures download, upload, ping, jitter, packet loss and latency under load — then
+            tells you what your connection can actually handle.
+          </p>
+        </div>
+
+        <div class="panel card">
+          <div class="panel__gauge">
+            <Speedometer />
+          </div>
+
+          <div class="panel__controls">
+            <div class="mode" role="group" aria-label="Test depth">
+              <div class="segment" id="mode">
+                <button type="button" data-mode="quick" aria-pressed="false">Quick</button>
+                <button type="button" data-mode="balanced" aria-pressed="true" data-active="true"
+                  >Balanced</button
+                >
+                <button type="button" data-mode="thorough" aria-pressed="false">Thorough</button>
+              </div>
+              <p class="mode__hint" id="mode-hint">~8s · balanced accuracy and data use</p>
+            </div>
+
+            <button type="button" id="start-btn" class="btn btn-primary panel__start">
+              <span id="start-icon" class="start-icon" aria-hidden="true"></span>
+              <span id="start-label">Start Test</span>
+            </button>
+          </div>
+
+          <div class="progress" id="progress" aria-hidden="true">
+            <div class="progress__track">
+              <div class="progress__bar" id="progress-bar"></div>
+            </div>
+            <div class="progress__pips">
+              <span class="pip" data-pip="latency">Latency</span>
+              <span class="pip" data-pip="download">Download</span>
+              <span class="pip" data-pip="upload">Upload</span>
+            </div>
+          </div>
+
+          <p id="status" class="panel__status" role="status" aria-live="polite">
+            Ready when you are.
+          </p>
+        </div>
+
+        <!-- Connection / server strip -->
+        <div class="conn" id="connection">
+          <div class="conn__item">
+            <span class="conn__label">IP address</span>
+            <span class="conn__value tnum" id="conn-ip" translate="no">—</span>
+          </div>
+          <div class="conn__item">
+            <span class="conn__label">Provider</span>
+            <span class="conn__value" id="conn-isp" translate="no">Detecting…</span>
+          </div>
+          <div class="conn__item">
+            <span class="conn__label">Test server</span>
+            <span class="conn__value" id="conn-server" translate="no">Cloudflare · auto</span>
+          </div>
+          <div class="conn__item">
+            <span class="conn__label">Protocol</span>
+            <span class="conn__value" id="conn-proto" translate="no">—</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────── Metrics ───────────────────────────────── -->
+    <section class="section" id="metrics" aria-labelledby="metrics-h">
+      <div class="container-page">
+        <div class="section__head">
+          <span class="eyebrow">Detailed results</span>
+          <h2 id="metrics-h" class="section__title">Every number that matters.</h2>
+        </div>
+
+        <div class="metrics-grid">
+          <MetricCard
+            metric="download"
+            label="Download"
+            unit="Mbps"
+            icon="download"
+            accent="var(--color-cyan-deep)"
+            hint="How fast data reaches you"
+          />
+          <MetricCard
+            metric="upload"
+            label="Upload"
+            unit="Mbps"
+            icon="upload"
+            accent="var(--color-brand-blue)"
+            hint="How fast you can send"
+          />
+          <MetricCard
+            metric="ping"
+            label="Ping"
+            unit="ms"
+            icon="ping"
+            accent="var(--color-violet)"
+            hint="Round-trip delay, idle"
+          />
+          <MetricCard
+            metric="jitter"
+            label="Jitter"
+            unit="ms"
+            icon="jitter"
+            accent="var(--color-amber)"
+            hint="How steady the delay is"
+          />
+          <MetricCard
+            metric="loss"
+            label="Packet Loss"
+            unit="%"
+            icon="loss"
+            accent="var(--color-red)"
+            hint="Reachability of probes (est.)"
+          />
+          <MetricCard
+            metric="loaded"
+            label="Latency Under Load"
+            unit="ms"
+            icon="loaded"
+            accent="var(--color-pink)"
+            hint="Delay while the line is busy"
+          />
+        </div>
+
+        <div class="graph card">
+          <div class="graph__head">
+            <div>
+              <span class="eyebrow">Throughput over time</span>
+              <p class="graph__sub">Live speed during the test — watch it ramp and settle.</p>
+            </div>
+            <div class="graph__legend">
+              <span class="legend"><i style="background:var(--color-cyan-deep)"></i>Download</span>
+              <span class="legend"><i style="background:var(--color-brand-blue)"></i>Upload</span>
+            </div>
+          </div>
+          <canvas id="live-graph" class="graph__canvas" width="1200" height="360"></canvas>
+          <p class="graph__empty" id="graph-empty">Your live throughput graph appears here.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────── Insights ───────────────────────────────── -->
+    <section class="section" id="insights" aria-labelledby="insights-h" hidden>
+      <div class="container-page">
+        <div class="section__head">
+          <span class="eyebrow">What it means</span>
+          <h2 id="insights-h" class="section__title">Your connection, explained.</h2>
+        </div>
+
+        <div class="insights-grid">
+          <!-- Score -->
+          <div class="score card">
+            <div class="score__ring-wrap">
+              <svg viewBox="0 0 120 120" class="score__ring" aria-hidden="true">
+                <circle class="score__track" cx="60" cy="60" r="52" pathLength="100" />
+                <circle
+                  id="score-ring"
+                  class="score__value"
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  pathLength="100"
+                  stroke="url(#gaugeGrad)"
+                />
+              </svg>
+              <div class="score__center">
+                <span id="score-value" class="tnum">—</span>
+                <span class="score__outof">/100</span>
+              </div>
+            </div>
+            <div class="score__meta">
+              <div class="score__grade-row">
+                <span id="score-grade" class="score__grade">—</span>
+                <span id="score-tier" class="badge">—</span>
+              </div>
+              <h3 id="score-headline" class="score__headline">Run a test to score your line</h3>
+              <p id="score-summary" class="score__summary">
+                Meter blends speed, latency, jitter, loss and behaviour under load into one honest
+                score.
+              </p>
+              <div id="subscores" class="subscores"></div>
+            </div>
+          </div>
+
+          <!-- Bufferbloat -->
+          <div class="bloat card">
+            <div class="bloat__head">
+              <span class="eyebrow">Bufferbloat</span>
+              <span id="bloat-grade" class="grade-chip">—</span>
+            </div>
+            <h3 class="bloat__title">Latency under load</h3>
+            <p id="bloat-detail" class="bloat__detail">
+              We re-measure ping while saturating your line. Big jumps mean calls and games stutter
+              during downloads.
+            </p>
+            <div class="bloat__bars">
+              <div class="bloat__bar">
+                <span>Idle</span>
+                <div class="bar"><i id="bar-idle"></i></div>
+                <span class="tnum" id="bloat-idle">—</span>
+              </div>
+              <div class="bloat__bar">
+                <span>Loaded</span>
+                <div class="bar"><i id="bar-loaded"></i></div>
+                <span class="tnum" id="bloat-loaded">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Capabilities -->
+          <div class="caps card">
+            <span class="eyebrow">What your line can do</span>
+            <ul id="capabilities" class="caps__list" aria-live="polite"></ul>
+          </div>
+        </div>
+
+        <!-- Share / export -->
+        <div id="share-actions" class="share">
+          <span class="share__label">Share or save your result</span>
+          <div class="share__btns">
+            <button type="button" id="btn-share" class="btn btn-secondary btn-sm" hidden>
+              Share
+            </button>
+            <button type="button" id="btn-copy" class="btn btn-secondary btn-sm">Copy Link</button>
+            <button type="button" id="btn-png" class="btn btn-secondary btn-sm">
+              Download Image
+            </button>
+            <button type="button" id="btn-json" class="btn btn-secondary btn-sm">
+              Export JSON
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────── History ───────────────────────────────── -->
+    <section class="section" id="history" aria-labelledby="history-h">
+      <div class="container-page">
+        <div class="section__head section__head--row">
+          <div>
+            <span class="eyebrow">Your history</span>
+            <h2 id="history-h" class="section__title">Track it over time.</h2>
+          </div>
+          <div class="history__actions">
+            <button type="button" id="btn-export-csv" class="btn btn-ghost btn-sm">Export CSV</button>
+            <button type="button" id="btn-clear-history" class="btn btn-ghost btn-sm">Clear</button>
+          </div>
+        </div>
+
+        <div class="history card">
+          <div class="history__trend" id="history-trend-wrap" hidden>
+            <div class="history__trend-head">
+              <span class="eyebrow">Download trend</span>
+              <span class="history__trend-note" id="history-trend-note"></span>
+            </div>
+            <svg
+              id="history-trend"
+              viewBox="0 0 600 120"
+              preserveAspectRatio="none"
+              class="history__spark"
+              aria-hidden="true"></svg>
+          </div>
+          <ul id="history-list" class="history__list"></ul>
+          <p id="history-empty" class="history__empty">
+            No tests yet. Your last 50 runs will be listed here, stored only on this device.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────── Why Meter ───────────────────────────────── -->
+    <section class="section" aria-labelledby="why-h">
+      <div class="container-page">
+        <div class="section__head">
+          <span class="eyebrow">Why Meter</span>
+          <h2 id="why-h" class="section__title">A speed test that respects your time.</h2>
+        </div>
+        <div class="features">
+          <article class="feature card-soft">
+            <h3 class="feature__title">Latency under load</h3>
+            <p class="feature__body">
+              Most tests report ping when your line is idle — useless when it matters. Meter measures
+              delay <em>while</em> saturating the connection, the way real apps stress it.
+            </p>
+          </article>
+          <article class="feature card-soft">
+            <h3 class="feature__title">Answers, not just numbers</h3>
+            <p class="feature__body">
+              A raw Mbps figure means little. Meter translates it into “can I run 3 4K streams” and
+              “will my calls hold up,” with a single honest score.
+            </p>
+          </article>
+          <article class="feature card-soft">
+            <h3 class="feature__title">Private by default</h3>
+            <p class="feature__body">
+              No account, no tracking wall, no results uploaded to a leaderboard. History lives in
+              your browser and you export it if you want it.
+            </p>
+          </article>
+          <article class="feature card-soft">
+            <h3 class="feature__title">Fast and light</h3>
+            <p class="feature__body">
+              A static, zero-framework page that loads instantly and starts testing on tap — built
+              to be quicker than the tools it learns from.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────── FAQ ───────────────────────────────── -->
+    <section class="section" id="faq" aria-labelledby="faq-h">
+      <div class="container-page container-narrow">
+        <div class="section__head">
+          <span class="eyebrow">Good to know</span>
+          <h2 id="faq-h" class="section__title">Questions, answered.</h2>
+        </div>
+        <div class="faq">
+          <details class="faq__item">
+            <summary class="faq__q">How does Meter measure my speed?</summary>
+            <div class="faq__a">
+              Meter runs entirely in your browser. It streams data to and from Cloudflare’s global
+              edge network — the same infrastructure that serves a large share of the web — using
+              several parallel connections to fully saturate your line, then aggregates the stable
+              portion of each run.
+            </div>
+          </details>
+          <details class="faq__item">
+            <summary class="faq__q">What is latency under load (bufferbloat)?</summary>
+            <div class="faq__a">
+              It’s how much your ping rises when the connection is busy. A line can look fast yet feel
+              terrible on calls because latency balloons during uploads or downloads. Meter grades
+              this A+ to F so you can spot it.
+            </div>
+          </details>
+          <details class="faq__item">
+            <summary class="faq__q">Why is my result different from my plan’s speed?</summary>
+            <div class="faq__a">
+              Wi-Fi, the device you’re on, time of day, VPNs and background apps all cost speed.
+              For the truest number, test over a wired connection with other devices idle, and run it
+              a few times.
+            </div>
+          </details>
+          <details class="faq__item">
+            <summary class="faq__q">Is packet loss really measured in a browser?</summary>
+            <div class="faq__a">
+              Browsers can’t see raw packets, so Meter estimates loss from probes that fail or time
+              out during the test. Treat it as a stability signal rather than a lab-grade figure —
+              that’s why it’s labelled an estimate.
+            </div>
+          </details>
+          <details class="faq__item">
+            <summary class="faq__q">How much data does a test use?</summary>
+            <div class="faq__a">
+              Meter stops each phase the moment your speed stabilises, so a Balanced run usually
+              finishes in about ten seconds and moves 100–400 MB depending on how fast your line
+              is. On a metered or mobile plan, choose Quick.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Base>
+
+<script>
+  import '../scripts/app';
+</script>
+
+<style>
+  /* ── Hero ─────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-top: 40px;
+  }
+  .hero__mesh {
+    position: absolute;
+    inset: -20% -10% auto -10%;
+    height: 620px;
+    filter: blur(60px) saturate(130%);
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+  }
+  :global([data-theme='dark']) .hero__mesh {
+    opacity: 0.36;
+  }
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+  }
+  .hero__intro {
+    text-align: center;
+    max-width: 720px;
+    margin: 12px auto 0;
+  }
+  .hero__badge {
+    margin-bottom: 20px;
+  }
+  .hero__badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-green);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green) 25%, transparent);
+  }
+  .hero__title {
+    font-size: clamp(34px, 6vw, 56px);
+    font-weight: 600;
+    line-height: 1.03;
+    letter-spacing: -0.035em;
+    color: var(--text);
+  }
+  .hero__lead {
+    margin: 20px auto 0;
+    max-width: 60ch;
+    font-size: clamp(16px, 2.2vw, 19px);
+    line-height: 1.55;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+
+  /* ── Test panel ───────────────────────────────────── */
+  .panel {
+    margin: 40px auto 0;
+    max-width: 640px;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .panel__gauge {
+    width: 100%;
+  }
+  .panel__controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .mode {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .mode__hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+  }
+  .panel__start {
+    position: relative;
+    min-width: 220px;
+    height: 52px;
+    font-size: 16px;
+  }
+  /* Expanding pulse ring around the button while a test is running. */
+  .panel__start[data-running='true']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 1.5px var(--color-brand-blue);
+    animation: pulseRing 1.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    pointer-events: none;
+  }
+  @keyframes pulseRing {
+    0% {
+      transform: scale(1);
+      opacity: 0.65;
+    }
+    75%,
+    100% {
+      transform: scale(1.14);
+      opacity: 0;
+    }
+  }
+  .start-icon {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 10px;
+    border-color: transparent transparent transparent currentColor;
+  }
+  #start-btn[data-running='true'] .start-icon {
+    border: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  .progress {
+    width: 100%;
+    margin-top: 22px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .progress[data-visible='true'] {
+    opacity: 1;
+  }
+  .progress__track {
+    height: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--track);
+    overflow: hidden;
+  }
+  .progress__bar {
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--color-cyan), var(--color-brand-blue), var(--color-violet));
+    transition: width 0.25s var(--ease-out-quint);
+  }
+  /* Light sweep across the filled bar — transform-only, compositor-friendly. */
+  .progress__bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  .progress__pips {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .pip {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-faint);
+    transition: color 0.2s;
+  }
+  .pip[data-state='active'] {
+    color: var(--color-brand-blue);
+  }
+  .pip[data-state='done'] {
+    color: var(--color-green);
+  }
+  .panel__status {
+    margin-top: 16px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    text-align: center;
+    min-height: 20px;
+    text-wrap: balance;
+  }
+
+  /* ── Connection strip ─────────────────────────────── */
+  .conn {
+    margin: 28px auto 0;
+    max-width: 760px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--hairline);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .conn__item {
+    background: var(--surface);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .conn__label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
+  }
+  .conn__value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (min-width: 720px) {
+    .conn {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* ── Sections ─────────────────────────────────────── */
+  .section {
+    padding-top: 72px;
+  }
+  .section__head {
+    margin-bottom: 28px;
+  }
+  .section__head--row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .section__title {
+    margin-top: 8px;
+    font-size: clamp(24px, 4vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  .container-narrow {
+    max-width: 760px;
+  }
+
+  /* ── Metrics grid ─────────────────────────────────── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  @media (min-width: 720px) {
+    .metrics-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ── Live graph ───────────────────────────────────── */
+  .graph {
+    margin-top: 16px;
+    padding: 20px;
+    position: relative;
+  }
+  .graph__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .graph__sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .graph__legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .legend i {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+  .graph__canvas {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1200 / 360;
+    display: block;
+  }
+  .graph__empty {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 46%;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-faint);
+    pointer-events: none;
+  }
+
+  /* ── Insights ─────────────────────────────────────── */
+  /* Staggered entrance each time a fresh result lands. */
+  #insights.insights--enter .insights-grid > .card,
+  #insights.insights--enter .share {
+    animation: riseIn 0.55s var(--ease-out-quint) both;
+  }
+  #insights.insights--enter .insights-grid > .card:nth-child(2) {
+    animation-delay: 90ms;
+  }
+  #insights.insights--enter .insights-grid > .card:nth-child(3) {
+    animation-delay: 180ms;
+  }
+  #insights.insights--enter .share {
+    animation-delay: 260ms;
+  }
+  @keyframes riseIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .insights-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 880px) {
+    .insights-grid {
+      grid-template-columns: 1.5fr 1fr;
+      grid-auto-rows: auto;
+    }
+    .caps {
+      grid-column: 1 / -1;
+    }
+  }
+  .score {
+    padding: 24px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .score__ring-wrap {
+    position: relative;
+    width: 132px;
+    height: 132px;
+    flex: none;
+  }
+  .score__ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .score__track {
+    fill: none;
+    stroke: var(--track);
+    stroke-width: 9;
+  }
+  .score__value {
+    fill: none;
+    stroke-width: 9;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    transition: stroke-dashoffset 0.9s var(--ease-out-quint);
+  }
+  .score__center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #score-value {
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .score__outof {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+  .score__meta {
+    flex: 1;
+    min-width: 220px;
+  }
+  .score__grade-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .score__grade {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .score__headline {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .score__summary {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+  .subscores {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 18px;
+  }
+  .subscore {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .subscore__top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .subscore__bar {
+    height: 5px;
+    border-radius: var(--radius-pill);
+    background: var(--track);
+    overflow: hidden;
+  }
+  .subscore__fill {
+    height: 100%;
+    border-radius: inherit;
+    width: 0%;
+    transition: width 0.8s var(--ease-out-quint);
+  }
+
+  .bloat {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .bloat__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .grade-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 34px;
+    padding-inline: 10px;
+    border-radius: var(--radius-md);
+    font-size: 18px;
+    font-weight: 600;
+    background: var(--surface-soft-2);
+    color: var(--text);
+  }
+  .bloat__title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .bloat__detail {
+    margin-top: 6px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    flex: 1;
+    text-wrap: pretty;
+  }
+  .bloat__bars {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bloat__bar {
+    display: grid;
+    grid-template-columns: 52px 1fr 56px;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .bloat__bar .bar {
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: var(--track);
+    overflow: hidden;
+  }
+  .bloat__bar .bar i {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    transition: width 0.8s var(--ease-out-quint), background-color 0.3s;
+  }
+  .bloat__bar .tnum {
+    text-align: right;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .caps {
+    padding: 24px;
+  }
+  .caps__list {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  @media (min-width: 640px) {
+    .caps__list {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px 32px;
+    }
+  }
+  @media (min-width: 980px) {
+    .caps__list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .cap {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .cap__dot {
+    margin-top: 4px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .cap__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .cap__detail {
+    font-size: 12.5px;
+    color: var(--text-faint);
+    line-height: 1.45;
+    margin-top: 1px;
+  }
+
+  /* ── Share ────────────────────────────────────────── */
+  .share {
+    margin-top: 20px;
+    padding: 18px 20px;
+    border: 1px dashed var(--hairline-strong);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .share__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .share__btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* ── History ──────────────────────────────────────── */
+  .history {
+    padding: 8px 20px 12px;
+  }
+  .history__actions {
+    display: flex;
+    gap: 4px;
+  }
+  .history__trend {
+    padding: 16px 0 8px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .history__trend-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .history__trend-note {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .history__spark {
+    width: 100%;
+    height: 90px;
+    display: block;
+  }
+  .history__list {
+    display: flex;
+    flex-direction: column;
+  }
+  .history__row {
+    display: grid;
+    grid-template-columns: 1.3fr repeat(3, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .history__row:last-child {
+    border-bottom: none;
+  }
+  .history__when {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .history__date {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .history__isp {
+    font-size: 12px;
+    color: var(--text-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .history__stat span:first-child {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .history__stat span:last-child {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-faint);
+  }
+  .history__del {
+    color: var(--text-faint);
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .history__del:hover {
+    color: var(--color-red);
+    background: var(--surface-soft-2);
+  }
+  .history__empty {
+    padding: 22px 0 26px;
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--text-faint);
+  }
+  .history__stat--hide {
+    display: none;
+  }
+  @media (max-width: 620px) {
+    .history__row {
+      grid-template-columns: 1.4fr 1fr 1fr auto;
+    }
+    .history__stat--hide {
+      display: none;
+    }
+  }
+
+  /* ── Features ─────────────────────────────────────── */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 720px) {
+    .features {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .feature {
+    padding: 22px;
+  }
+  .feature__title {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .feature__body {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+  .feature__body em {
+    font-style: italic;
+    color: var(--text);
+  }
+
+  /* ── FAQ ──────────────────────────────────────────── */
+  .faq {
+    display: flex;
+    flex-direction: column;
+  }
+  .faq__item {
+    border-bottom: 1px solid var(--hairline);
+  }
+  .faq__q {
+    padding: 18px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .faq__q::-webkit-details-marker {
+    display: none;
+  }
+  .faq__q::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid var(--text-faint);
+    border-bottom: 2px solid var(--text-faint);
+    transform: rotate(45deg);
+    transition: transform 0.2s;
+    flex: none;
+  }
+  .faq__item[open] .faq__q::after {
+    transform: rotate(-135deg);
+  }
+  .faq__a {
+    padding: 0 0 20px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+
+  /* ── Shared banner ────────────────────────────────── */
+  .shared-banner {
+    background: var(--surface-soft-2);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .shared-banner__inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-block: 12px;
+    flex-wrap: wrap;
+  }
+  .shared-banner__text {
+    flex: 1;
+    min-width: 200px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+</style>

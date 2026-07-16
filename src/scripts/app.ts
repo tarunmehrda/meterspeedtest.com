@@ -157,26 +157,19 @@ function resetGaugeValue(): void {
   setGauge(0, gaugeUnit, 0);
 }
 
-/** Reveal the resting "0.00" readout beneath the GO button (idle presentation). */
-function revealIdleReadout(): void {
-  if (running || lastResult) return;
-  const readout = $('gauge-readout');
-  if (!readout) return;
-  readout.removeAttribute('hidden');
-  // Displayed first, then faded via the CSS transition on the next frame.
-  readout.style.opacity = '0';
-  requestAnimationFrame(() => {
-    readout.style.opacity = '';
-    readout.setAttribute('data-idle', 'true');
-  });
-}
-
 /** Power-on choreography: the dial fills once, gracefully, then eases to rest. */
 function introSweep(): void {
+  const goBtn = $('go-btn');
   if (REDUCE) {
-    revealIdleReadout();
+    dataGauge?.setAttribute('data-dial', 'rest');
+    if (goBtn) goBtn.removeAttribute('hidden');
     return;
   }
+
+  // Start with the GO button hidden and the needle/arc live for the sweep.
+  if (goBtn) goBtn.setAttribute('hidden', '');
+  dataGauge?.setAttribute('data-dial', 'active');
+
   const liveFrac = fracResponse;
   const liveVal = valResponse;
   fracResponse = 3.2; // gentler than the live-test chase, for a graceful sweep
@@ -188,7 +181,12 @@ function introSweep(): void {
   window.setTimeout(() => {
     fracResponse = liveFrac;
     valResponse = liveVal;
-    revealIdleReadout();
+    // The circle has powered on: fade the needle/arc to rest and pop the GO
+    // button into the now-clean centre.
+    if (!running) {
+      dataGauge?.setAttribute('data-dial', 'rest');
+      if (goBtn) goBtn.removeAttribute('hidden');
+    }
   }, 1650);
 }
 
@@ -587,25 +585,28 @@ function setRunning(state: boolean): void {
   const readout = $('gauge-readout');
   
   if (state) {
+    // Testing: needle + arc live, GO hidden, readout shown.
+    dataGauge?.setAttribute('data-dial', 'active');
     if (goBtn) goBtn.setAttribute('hidden', '');
     if (readout) {
       readout.removeAttribute('hidden');
-      readout.removeAttribute('data-idle'); // full-strength readout while testing
+      readout.removeAttribute('data-idle');
+      readout.style.opacity = '';
+    }
+  } else if (lastResult) {
+    // Finished: keep the arc/needle settled on the result, show the readout.
+    dataGauge?.setAttribute('data-dial', 'active');
+    if (goBtn) goBtn.setAttribute('hidden', '');
+    if (readout) {
+      readout.removeAttribute('hidden');
+      readout.removeAttribute('data-idle');
       readout.style.opacity = '';
     }
   } else {
-    if (lastResult) {
-      if (goBtn) goBtn.setAttribute('hidden', '');
-      if (readout) {
-        readout.removeAttribute('hidden');
-        readout.removeAttribute('data-idle');
-        readout.style.opacity = '';
-      }
-    } else {
-      // Back to idle: keep GO as the hero, rest a dimmed "0.00" beneath it.
-      if (goBtn) goBtn.removeAttribute('hidden');
-      revealIdleReadout();
-    }
+    // Back to idle: clean, centred GO button — needle/arc fade away.
+    dataGauge?.setAttribute('data-dial', 'rest');
+    if (goBtn) goBtn.removeAttribute('hidden');
+    if (readout) readout.setAttribute('hidden', '');
   }
 
   const progress = $('progress');
@@ -950,8 +951,10 @@ function init(): void {
   });
 
   $('shared-dismiss')?.addEventListener('click', () => {
+    lastResult = null;
     clearSharedState();
     resetForRun();
+    setRunning(false);
     setText('status', 'Ready when you are.');
   });
 

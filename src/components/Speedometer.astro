@@ -7,7 +7,7 @@ const cx = GAUGE.cx;
 const cy = GAUGE.cy;
 ---
 
-<div class="gauge" data-gauge data-phase="idle">
+<div class="gauge" data-gauge data-phase="idle" data-dial="rest">
   <!-- Decorative: the accessible readout is the live status region + metric cards. -->
   <svg class="gauge__svg" viewBox="0 0 320 320" aria-hidden="true">
     <defs>
@@ -91,7 +91,7 @@ const cy = GAUGE.cy;
   </svg>
 
   <!-- Large circular GO button in the center when idle -->
-  <button type="button" id="go-btn" class="go-btn">
+  <button type="button" id="go-btn" class="go-btn" hidden>
     <span class="go-btn__text">GO</span>
   </button>
 
@@ -162,7 +162,11 @@ const cy = GAUGE.cy;
     justify-content: center;
     cursor: pointer;
     z-index: 10;
-    transition: all 0.35s var(--ease-out-quint);
+    transition:
+      opacity 0.4s var(--ease-out-quint),
+      transform 0.4s var(--ease-out-quint),
+      border-color 0.35s var(--ease-out-quint),
+      box-shadow 0.35s var(--ease-out-quint);
   }
   .go-btn:hover {
     transform: scale(1.08);
@@ -182,8 +186,14 @@ const cy = GAUGE.cy;
   .go-btn:hover .go-btn__text {
     color: var(--color-cyan-deep);
   }
-  .go-btn[hidden] {
-    display: none !important;
+  .go-btn[hidden],
+  .go-btn[hidden]:hover,
+  .go-btn[hidden]:active {
+    display: flex !important;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.3) rotate(-15deg);
+    box-shadow: none;
   }
 
   /* Soft breathing halo behind the dial while a test runs. */
@@ -270,7 +280,9 @@ const cy = GAUGE.cy;
     stroke-linecap: round;
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
-    transition: none;
+    /* Opacity-only transition: the dash offset is driven per-frame in JS and
+       must stay instant, but the arc can fade in/out cleanly between states. */
+    transition: opacity 0.5s var(--ease-out-quint);
   }
 
   .tick {
@@ -292,7 +304,15 @@ const cy = GAUGE.cy;
   #gauge-needle {
     transform-origin: 160px 160px;
     transform: rotate(-135deg);
-    transition: none;
+    /* Opacity-only transition — the rotation is driven per-frame in JS. */
+    transition: opacity 0.5s var(--ease-out-quint);
+  }
+
+  /* At rest (idle, after the power-on sweep) the needle and value arc fade
+     away so the centred GO button reads cleanly, with nothing poking out. */
+  .gauge[data-dial='rest'] #gauge-needle,
+  .gauge[data-dial='rest'] .gauge__value-arc {
+    opacity: 0;
   }
   .gauge__hub-outer {
     fill: var(--surface);
@@ -313,9 +333,14 @@ const cy = GAUGE.cy;
     gap: 0px;
     pointer-events: none;
     z-index: 5;
+    transition: opacity 0.7s var(--ease-out-quint);
   }
   .gauge__readout[hidden] {
     display: none !important;
+  }
+  /* At rest the readout sits dimmed beneath the GO button as a quiet "0.00". */
+  .gauge__readout[data-idle] {
+    opacity: 0.5;
   }
   .gauge__value-wrap {
     line-height: 1;

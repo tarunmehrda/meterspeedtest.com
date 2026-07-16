@@ -7,30 +7,15 @@ const { size = 28, withWordmark = true } = Astro.props;
 ---
 
 <a href="/" class="logo" aria-label="Meter Speed Test — home">
-  <svg
+  <img
+    src="/icon.png"
     width={size}
     height={size}
-    viewBox="0 0 32 32"
-    fill="none"
+    alt=""
     aria-hidden="true"
     class="logo__mark"
-  >
-    <rect width="32" height="32" rx="8" fill="var(--primary)" />
-    <path
-      d="M8 21a8 8 0 0 1 16 0"
-      stroke="url(#logoGrad)"
-      stroke-width="2.5"
-      stroke-linecap="round"
-    />
-    <path d="M16 21 21 12.5" stroke="var(--on-primary)" stroke-width="2.5" stroke-linecap="round" />
-    <circle cx="16" cy="21" r="2.4" fill="var(--on-primary)" />
-    <defs>
-      <linearGradient id="logoGrad" x1="8" y1="21" x2="24" y2="13" gradientUnits="userSpaceOnUse">
-        <stop stop-color="var(--color-cyan)" />
-        <stop offset="1" stop-color="var(--color-brand-blue)" />
-      </linearGradient>
-    </defs>
-  </svg>
+    decoding="async"
+  />
   {withWordmark && <span class="logo__word">Meter</span>}
 </a>
 
@@ -47,6 +32,7 @@ const { size = 28, withWordmark = true } = Astro.props;
   .logo__mark {
     display: block;
     flex: none;
+    object-fit: contain;
   }
   .logo__word {
     line-height: 1;

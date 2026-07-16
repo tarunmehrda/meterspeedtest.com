@@ -51,6 +51,16 @@ const paths: Record<Props['icon'], string> = {
     flex-direction: column;
     gap: 10px;
     min-width: 0;
+    transition: box-shadow 0.22s var(--ease-out-quint), transform 0.22s var(--ease-out-quint);
+  }
+  .metric:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-3);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .metric:hover {
+      transform: none;
+    }
   }
   .metric__top {
     display: flex;

@@ -4,9 +4,121 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import Speedometer from '../components/Speedometer.astro';
 import MetricCard from '../components/MetricCard.astro';
+
+// SEO FAQ — questions rendered as real H3 headings and mirrored into FAQPage
+// JSON-LD from this single source so the schema always matches visible content.
+const seoFaqs = [
+  {
+    q: 'What is a Speed Test?',
+    a: `A speed test is a quick diagnostic that measures how fast data travels between your device and the internet. In a few seconds, a network speed test records your download speed, upload speed, ping and latency, giving you real numbers instead of guesswork about your connection. Meter runs the test right in your browser, streaming data to nearby edge servers to push your line to its limit and capture an accurate reading. The result tells you whether your connection can comfortably handle streaming, gaming, video calls and large downloads. Running an online speed test regularly is the easiest way to confirm you’re getting the performance you pay for and to spot slowdowns before they disrupt your day.`,
+  },
+  {
+    q: 'What is an Internet Speed Test?',
+    a: `An internet speed test measures the actual performance of your broadband or mobile connection at the moment you run it. Rather than trusting the number on your bill, the test sends and receives data to calculate your real download speed, upload speed and ping in megabits per second and milliseconds. Meter’s internet speed test works entirely online, using multiple parallel connections to fully saturate your line so the reading reflects true capacity. It also measures jitter, packet loss and latency under load, which reveal how stable your connection feels during calls and games. Because conditions change with congestion, Wi-Fi and time of day, running an internet speed test at different times gives you the clearest picture of what your provider delivers.`,
+  },
+  {
+    q: 'What’s My Speed Test?',
+    a: `“What’s my speed test” usually means you want to see your current internet speed right now. To find out, open Meter and tap GO — the online speed test measures your download speed, upload speed and ping within about ten seconds and displays them clearly. Your download number shows how quickly data reaches you, upload shows how fast you can send files, and ping reveals responsiveness. Meter also scores your connection and explains what it can realistically handle, from 4K streaming to video conferencing. Results are saved locally so you can compare each network speed test over time. If a reading looks low, run it again on a wired connection with other devices idle to confirm whether the slowdown is your line or local Wi-Fi.`,
+  },
+  {
+    q: 'How to Test Internet Speed?',
+    a: `To test internet speed, use a browser-based speed test like Meter and start a measurement with a single tap. The tool first checks your ping and latency, then measures download speed, and finally upload speed, reporting each result in real time. For the most accurate internet speed test, close bandwidth-heavy apps, pause other downloads and keep additional devices off the network while the test runs. A wired Ethernet connection removes Wi-Fi interference and shows your line’s true capacity, while a wifi speed test reflects everyday wireless performance. Run the test two or three times and compare the numbers, since a single reading can be affected by momentary congestion. This simple routine gives you a dependable snapshot of exactly how fast your connection performs.`,
+  },
+  {
+    q: 'How to Test My Internet Speed?',
+    a: `You can test your internet speed in seconds without installing anything. Open Meter in any browser, choose a test mode, and press GO to begin the network speed test. It measures your download speed, upload speed, ping, jitter and latency under load, then translates those numbers into plain-language ratings for browsing, streaming, gaming and calls. To keep your reading honest, connect over Ethernet when possible, or stand near your router for a wifi speed test, and make sure no big downloads are running in the background. Testing your internet speed at different times of day highlights congestion patterns from your provider. Because Meter stores each result locally, you build a personal history that makes it easy to prove a problem to your ISP.`,
+  },
+  {
+    q: 'How Do I Test My Internet Speed?',
+    a: `To test your internet speed, simply load an online speed test and let it measure the connection between your device and the nearest server. With Meter, you press GO and the ping test runs first, followed by the download speed test and upload speed test, with live results updating as data flows. You don’t need an account or app — everything happens in the browser. For reliable numbers, test one device at a time, pause streaming and cloud backups, and prefer a wired link to isolate your line from Wi-Fi limits. If you’re troubleshooting slow speeds, run the internet speed test both close to and far from your router; a big gap points to a wireless problem rather than your broadband plan itself.`,
+  },
+  {
+    q: 'How Can I Test My Internet Speed?',
+    a: `You can test your internet speed using any modern browser on a phone, tablet, laptop or desktop — no download required. Visit Meter, pick Quick, Balanced or Thorough, and start the test to measure download speed, upload speed, ping and latency. Because Meter is a fully online speed test, it streams data to global edge servers to gauge your connection’s real throughput. For the truest result, run a network speed test over Ethernet; for a realistic everyday reading, run a wifi speed test from where you normally sit. Try the test on more than one device to see whether a slowdown follows your line or a single gadget. Each measurement is saved on your device, so tracking performance over days or weeks takes no extra effort.`,
+  },
+  {
+    q: 'How to Test Your Internet Speed?',
+    a: `Testing your internet speed takes only a moment with a web-based tool. Open Meter, tap GO, and the speed test measures how fast data downloads to your device, how fast it uploads, and how quickly your connection responds during a ping test. Watch the live gauge as it captures the stable portion of each phase for an accurate reading. To get dependable numbers, shut down large downloads, disconnect idle devices, and use a wired connection when you want to measure the line itself rather than your Wi-Fi. Repeating the internet speed test a few times, and at different hours, reveals whether slowdowns come from network congestion. Meter finishes by scoring your connection and showing exactly what it can handle, so the result is genuinely useful.`,
+  },
+  {
+    q: 'How to Test the Internet Speed?',
+    a: `To test the internet speed on any connection, open a browser-based tool such as Meter and begin a measurement. The speed test first runs a latency test to record ping and jitter, then measures download and upload throughput in megabits per second. Results appear live, and the whole network speed test typically finishes in about ten seconds. For accuracy, test a single device at a time, pause background apps, and choose Ethernet over Wi-Fi to see your line’s full capacity. If you’re checking a shared or office connection, run the online speed test from several locations to map coverage and find weak spots. Comparing repeated readings helps separate a genuine broadband issue from a temporary dip caused by peak-hour congestion or a busy home network.`,
+  },
+  {
+    q: 'How to Run an Internet Speed Test?',
+    a: `Running an internet speed test is straightforward: open Meter in your browser and press GO to start. The tool automatically selects a nearby server, runs a quick ping test, and then measures your download speed and upload speed while showing throughput on a live graph. You can pick Quick for a fast check, Balanced for everyday accuracy, or Thorough for the most detailed reading. Before you run the test, close streaming tabs and pause downloads so nothing competes for bandwidth. Use Ethernet to benchmark your plan or Wi-Fi to gauge real-world performance. When the network speed test finishes, Meter grades your connection and lists what it can support, then saves the result locally so you can run it again later and compare.`,
+  },
+  {
+    q: 'How to Test Internet Speed Online?',
+    a: `Testing your internet speed online means running the whole measurement in a browser with nothing to install. Open Meter, and the online speed test connects to nearby edge servers to measure download speed, upload speed, ping and latency under load in real time. Because it’s browser-based, the same speed test works on Windows, macOS, Android, iOS and Chromebooks alike. For an accurate reading, pause other devices and background transfers, and switch to Ethernet if you want to measure your line rather than your Wi-Fi. An online speed test is ideal for quick, repeatable checks — bookmark Meter and run it whenever streaming buffers, calls drop, or downloads crawl. Each result is stored on your device, so you can build a history and spot patterns without signing up.`,
+  },
+  {
+    q: 'How to Test Internet Speed on PC?',
+    a: `To test internet speed on a PC, open any browser — Chrome, Edge or Firefox — go to Meter, and press GO. The speed test measures your download speed, upload speed, ping and jitter directly on your desktop or laptop without extra software. For the most accurate result on a PC, connect with an Ethernet cable to bypass Wi-Fi limits, close background apps like cloud sync and updates, and make sure no downloads are running. If you must use Wi-Fi, run the wifi speed test near the router first, then from your usual spot to compare. Windows PCs often run silent background transfers, so a repeat test confirms whether a low number is real. Meter then rates your connection for work, streaming and gaming so the numbers actually mean something.`,
+  },
+  {
+    q: 'How to Test WiFi Speed?',
+    a: `To test WiFi speed, connect your phone or laptop to the wireless network and run Meter’s speed test from where you normally use the device. The wifi speed test measures download speed, upload speed and ping over the air, capturing the performance you actually experience rather than the maximum your plan allows. Because walls, distance and interference weaken Wi-Fi, test in several rooms to map coverage and find dead zones. Compare a reading beside the router with one across the house; a large drop signals a Wi-Fi problem, not a slow internet plan. For a reference point, run a wired internet speed test too, then subtract the difference to see what wireless is costing you. Repeat the test on the 5 GHz band for faster nearby speeds.`,
+  },
+  {
+    q: 'How to Test My WiFi Speed?',
+    a: `You can test your WiFi speed in seconds by opening Meter on a device connected to your wireless network and pressing GO. The wifi speed test reports download speed, upload speed and ping exactly where you’re sitting, which reflects real everyday performance better than the number on your bill. Move around while you test — near the router, one room away, and at the far edge of the house — to see how much signal strength changes your speed. If the reading is far below your plan, the bottleneck is usually Wi-Fi rather than your broadband line, so try the 5 GHz band, reposition the router, or reduce interference. Running the network speed test on both Wi-Fi and Ethernet makes it easy to tell exactly where a slowdown begins.`,
+  },
+  {
+    q: 'What Is a Good Speed Test Result?',
+    a: `A good speed test result depends on what you do online, but useful benchmarks help. For most households, 100 Mbps download is comfortable for HD streaming and browsing, 300–500 Mbps suits busy homes with several 4K streams and downloads, and gigabit plans give plenty of headroom. On the upload side, 10–20 Mbps handles video calls and cloud backups, though fiber often delivers much more. Just as important are latency and stability: a good ping test shows under about 30 ms, with low jitter and little rise in latency under load. A connection with high download speed but poor latency can still feel sluggish on calls and games. Meter combines all of these into a single score, so you can judge your result at a glance.`,
+  },
+  {
+    q: 'What Is Ping on a Speed Test?',
+    a: `Ping on a speed test measures how long a small piece of data takes to travel from your device to a server and back, reported in milliseconds. It’s a latency test, so lower is better: a low ping means your connection responds instantly, which matters most for online gaming, video calls and live streaming. During the ping test, Meter also measures jitter — the variation between pings — and latency under load, which shows how much delay rises while your line is busy downloading or uploading. A connection can post fast download speeds yet still feel laggy if ping is high or unstable. As a rough guide, under 30 ms is excellent, 30–70 ms is fine for most uses, and above 100 ms starts to feel sluggish.`,
+  },
+  {
+    q: 'Download Speed Test',
+    a: `A download speed test measures how quickly data travels from the internet to your device, the number that matters most for streaming, browsing and downloading files. Meter runs the download speed test by pulling data through several parallel connections to fully load your line, then reports the result in megabits per second. Higher download speed means smoother 4K video, faster page loads and quicker downloads. To measure accurately, pause other devices and background apps, and use Ethernet to capture your line’s full capacity or Wi-Fi to gauge real-world performance. Remember that a complete internet speed test also checks upload speed and ping, since responsiveness and the ability to send data matter too. Run Meter’s download speed test a few times and compare the readings.`,
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: seoFaqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: `<p>${f.a}</p>` },
+  })),
+};
+
+const homeSite = 'https://meterspeedtest.com';
+const homeDescription =
+  'Free online Speed Test. Check your internet speed in seconds — download, upload, ping, jitter, latency and packet loss for WiFi, broadband, fiber and mobile.';
+
+// Homepage structured data: WebPage + BreadcrumbList. FAQPage is emitted
+// separately (faqJsonLd, below), and the site-wide Organization / WebSite /
+// SoftwareApplication nodes are supplied by Base.astro's @graph.
+const homeSchemas = [
+  {
+    '@type': 'WebPage',
+    '@id': `${homeSite}/#webpage`,
+    url: `${homeSite}/`,
+    name: 'Speed Test – Free Internet & WiFi Speed Test',
+    description: homeDescription,
+    isPartOf: { '@id': `${homeSite}/#website` },
+    about: { '@id': `${homeSite}/#app` },
+    primaryImageOfPage: { '@type': 'ImageObject', url: `${homeSite}/og.svg` },
+    breadcrumb: { '@id': `${homeSite}/#breadcrumb` },
+    inLanguage: 'en',
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': `${homeSite}/#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Speed Test', item: `${homeSite}/` },
+    ],
+  },
+];
 ---
 
-<Base>
+<Base description={homeDescription} schemas={homeSchemas}>
   <Nav />
 
   <main id="main">
@@ -31,7 +143,7 @@ import MetricCard from '../components/MetricCard.astro';
             Real-time · No sign-up · Private
           </span>
           <h1 class="hero__title">
-            Know exactly how fast<br />your internet <span class="text-gradient">really</span> is.
+            The <span class="text-gradient">Speed Test</span> that shows how fast<br />your internet really is.
           </h1>
           <p class="hero__lead">
             Meter measures download, upload, ping, jitter, packet loss and latency under load — then
@@ -47,114 +159,61 @@ import MetricCard from '../components/MetricCard.astro';
                 <span class="upper-metric__icon download-icon">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
                 </span>
-                DOWNLOAD Mbps
+                Download
               </div>
-              <div class="upper-metric__value" id="upper-download">—</div>
+              <div class="upper-metric__value tnum" id="upper-download" data-empty="true">0.00</div>
+              <div class="upper-metric__unit">Mbps</div>
             </div>
+            <div class="upper-results__divider" aria-hidden="true"></div>
             <div class="upper-metric" id="upper-metric-upload">
               <div class="upper-metric__label">
                 <span class="upper-metric__icon upload-icon">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
                 </span>
-                UPLOAD Mbps
+                Upload
               </div>
-              <div class="upper-metric__value" id="upper-upload">—</div>
+              <div class="upper-metric__value tnum" id="upper-upload" data-empty="true">0.00</div>
+              <div class="upper-metric__unit">Mbps</div>
             </div>
           </div>
 
           <!-- 2. Ping Statistics Row -->
           <div class="ping-stats">
-            <div class="ping-stat-header">Ping ms</div>
-            <div class="ping-stat-items">
-              <div class="ping-stat-item" title="Idle Latency">
-                <span class="ping-stat-icon ping-stat-icon--idle">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h3l2-5 3 10 2-7 2 2h5"/></svg>
-                </span>
-                <span id="upper-ping-idle" class="tnum">—</span>
-              </div>
-              <div class="ping-stat-item" title="Download Latency (Loaded)">
-                <span class="ping-stat-icon ping-stat-icon--download">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-                </span>
-                <span id="upper-ping-download" class="tnum">—</span>
-              </div>
-              <div class="ping-stat-item" title="Upload Latency (Loaded)">
-                <span class="ping-stat-icon ping-stat-icon--upload">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                </span>
-                <span id="upper-ping-upload" class="tnum">—</span>
-              </div>
+            <div class="ping-stat-item" title="Latency while the line is idle">
+              <span class="ping-stat-icon ping-stat-icon--idle">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h3l2-5 3 10 2-7 2 2h5"/></svg>
+              </span>
+              <span class="ping-stat-body">
+                <span class="ping-stat-label">Idle</span>
+                <span class="ping-stat-value"><span id="upper-ping-idle" class="tnum" data-empty="true">—</span> ms</span>
+              </span>
+            </div>
+            <div class="ping-stat-item" title="Latency measured during download">
+              <span class="ping-stat-icon ping-stat-icon--download">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+              </span>
+              <span class="ping-stat-body">
+                <span class="ping-stat-label">Download</span>
+                <span class="ping-stat-value"><span id="upper-ping-download" class="tnum" data-empty="true">—</span> ms</span>
+              </span>
+            </div>
+            <div class="ping-stat-item" title="Latency measured during upload">
+              <span class="ping-stat-icon ping-stat-icon--upload">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              </span>
+              <span class="ping-stat-body">
+                <span class="ping-stat-label">Upload</span>
+                <span class="ping-stat-value"><span id="upper-ping-upload" class="tnum" data-empty="true">—</span> ms</span>
+              </span>
             </div>
           </div>
 
-          <!-- 3. Category Rating Icons (5 dots) -->
-          <div class="category-ratings">
-            <div class="rating-item" data-category="web" title="Web Browsing">
-              <svg class="rating-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="9" y1="21" x2="9" y2="9"></line>
-              </svg>
-              <div class="rating-dots" id="dots-web">
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-              </div>
-            </div>
-            <div class="rating-item" data-category="game" title="Gaming">
-              <svg class="rating-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                <line x1="6" y1="12" x2="10" y2="12"></line>
-                <line x1="8" y1="10" x2="8" y2="14"></line>
-                <circle cx="15.5" cy="12" r="1" fill="currentColor"></circle>
-                <circle cx="18.5" cy="12" r="1" fill="currentColor"></circle>
-              </svg>
-              <div class="rating-dots" id="dots-game">
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-              </div>
-            </div>
-            <div class="rating-item" data-category="video" title="Video Streaming">
-              <svg class="rating-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-              </svg>
-              <div class="rating-dots" id="dots-video">
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-              </div>
-            </div>
-            <div class="rating-item" data-category="call" title="Video Calls">
-              <svg class="rating-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <div class="rating-dots" id="dots-call">
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-                <span class="rating-dot"></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 4. Center Speedometer -->
+          <!-- 3. Center Speedometer -->
           <div class="panel__gauge">
             <Speedometer />
           </div>
 
-          <!-- 5. Minimal Progress Bar -->
+          <!-- 4. Minimal Progress Bar -->
           <div class="progress" id="progress" aria-hidden="true">
             <div class="progress__track">
               <div class="progress__bar" id="progress-bar"></div>
@@ -166,7 +225,7 @@ import MetricCard from '../components/MetricCard.astro';
             </div>
           </div>
 
-          <!-- 6. Mode selector (Quick, Balanced, Thorough) -->
+          <!-- 5. Mode selector (Quick, Balanced, Thorough) -->
           <div class="panel__mode-selector">
             <div class="segment" id="mode">
               <button type="button" data-mode="quick" aria-pressed="false">Quick</button>
@@ -177,35 +236,102 @@ import MetricCard from '../components/MetricCard.astro';
           </div>
 
           <p id="status" class="panel__status" role="status" aria-live="polite">
-            Ready when you are.
+            Tap GO to start — takes about 8 seconds.
           </p>
+
+          <!-- 6. Real-world capability ratings -->
+          <div class="category-ratings">
+            <div class="rating-item" data-category="web" title="Web browsing">
+              <span class="rating-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <line x1="3.5" y1="9" x2="20.5" y2="9"></line>
+                  <line x1="3.5" y1="15" x2="20.5" y2="15"></line>
+                  <path d="M12 3c2.5 2.5 3.5 5.8 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.8-3.5-9S9.5 5.5 12 3z"></path>
+                </svg>
+              </span>
+              <div class="rating-dots" id="dots-web">
+                <span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span>
+              </div>
+              <span class="rating-label">Web</span>
+            </div>
+            <div class="rating-item" data-category="game" title="Online gaming">
+              <span class="rating-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="6" width="20" height="12" rx="3"></rect>
+                  <line x1="6" y1="12" x2="10" y2="12"></line>
+                  <line x1="8" y1="10" x2="8" y2="14"></line>
+                  <circle cx="15.5" cy="11" r="1.1" fill="currentColor" stroke="none"></circle>
+                  <circle cx="18" cy="13" r="1.1" fill="currentColor" stroke="none"></circle>
+                </svg>
+              </span>
+              <div class="rating-dots" id="dots-game">
+                <span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span>
+              </div>
+              <span class="rating-label">Gaming</span>
+            </div>
+            <div class="rating-item" data-category="video" title="4K video streaming">
+              <span class="rating-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="5" width="15" height="14" rx="2.5"></rect>
+                  <path d="M17 9.5 22 7v10l-5-2.5z"></path>
+                </svg>
+              </span>
+              <div class="rating-dots" id="dots-video">
+                <span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span>
+              </div>
+              <span class="rating-label">Streaming</span>
+            </div>
+            <div class="rating-item" data-category="call" title="Video calls">
+              <span class="rating-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V21"></path>
+                  <circle cx="9.5" cy="7" r="4"></circle>
+                  <path d="M22 21v-1.5a4 4 0 0 0-3-3.85"></path>
+                  <path d="M16 3.15a4 4 0 0 1 0 7.7"></path>
+                </svg>
+              </span>
+              <div class="rating-dots" id="dots-call">
+                <span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span><span class="rating-dot"></span>
+              </div>
+              <span class="rating-label">Calls</span>
+            </div>
+          </div>
         </div>
 
         <!-- 7. Connection / server bottom info block -->
-        <div class="bottom-info" id="connection">
-          <div class="bottom-info__client">
-            <div class="bottom-info__text text-right">
-              <div id="conn-isp" class="bottom-info__title" translate="no">Detecting…</div>
-              <div id="conn-ip" class="bottom-info__sub tnum" translate="no">—</div>
-            </div>
-            <div class="bottom-info__icon-circle">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="bottom-info card" id="connection">
+          <div class="bottom-info__node bottom-info__node--client">
+            <div class="bottom-info__icon-circle bottom-info__icon-circle--client">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
             </div>
+            <div class="bottom-info__text">
+              <div class="bottom-info__eyebrow">Your connection</div>
+              <div id="conn-isp" class="bottom-info__title" translate="no">Detecting…</div>
+              <div id="conn-ip" class="bottom-info__sub tnum" translate="no">—</div>
+            </div>
           </div>
 
-          <div class="bottom-info__server">
-            <div class="bottom-info__icon-circle">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <div class="bottom-info__link" aria-hidden="true">
+            <span class="bottom-info__dot"></span>
+            <span class="bottom-info__dash"></span>
+            <span class="bottom-info__dot"></span>
+          </div>
+
+          <div class="bottom-info__node bottom-info__node--server">
+            <div class="bottom-info__icon-circle bottom-info__icon-circle--server">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
                 <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
                 <line x1="6" y1="6" x2="6.01" y2="6"></line>
                 <line x1="6" y1="18" x2="6.01" y2="18"></line>
               </svg>
             </div>
-            <div class="bottom-info__text text-left">
+            <div class="bottom-info__text">
+              <div class="bottom-info__eyebrow">Test server</div>
               <div id="conn-server-name" class="bottom-info__title" translate="no">Cloudflare</div>
               <div id="conn-server-location" class="bottom-info__sub" translate="no">auto</div>
             </div>
@@ -412,14 +538,6 @@ import MetricCard from '../components/MetricCard.astro';
               aria-hidden="true"></svg>
           </div>
           
-          <div class="history__header-row" id="history-header" hidden>
-            <span class="text-left font-semibold uppercase tracking-wider text-[11px] text-faint">Date & ISP</span>
-            <span class="text-center font-semibold uppercase tracking-wider text-[11px] text-faint">Download</span>
-            <span class="text-center font-semibold uppercase tracking-wider text-[11px] text-faint">Upload</span>
-            <span class="text-center font-semibold uppercase tracking-wider text-[11px] text-faint history__header-ping">Ping</span>
-            <span></span>
-          </div>
-          
           <ul id="history-list" class="history__list"></ul>
           <div id="history-empty" class="history__empty-state">
             <div class="history__empty-icon-wrap">
@@ -529,7 +647,29 @@ import MetricCard from '../components/MetricCard.astro';
         </div>
       </div>
     </section>
+
+    <!-- ─────────────────────────── Speed Test FAQ (SEO) ─────────────────────────── -->
+    <section class="section" id="speed-test-faq" aria-labelledby="seo-faq-h">
+      <div class="container-page container-narrow">
+        <div class="section__head">
+          <span class="eyebrow">Speed Test guide</span>
+          <h2 id="seo-faq-h" class="section__title">Speed Test — frequently asked questions</h2>
+        </div>
+        <div class="seo-faq">
+          {
+            seoFaqs.map((f) => (
+              <article class="seo-faq__item">
+                <h3 class="seo-faq__q">{f.q}</h3>
+                <p class="seo-faq__a">{f.a}</p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
   </main>
+
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(faqJsonLd)} />
 
   <Footer />
 </Base>
@@ -596,46 +736,53 @@ import MetricCard from '../components/MetricCard.astro';
   .panel {
     margin: 40px auto 0;
     max-width: 480px;
-    padding: 24px;
+    padding: 24px 24px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-2xl);
     border: 1px solid var(--hairline);
-    background: radial-gradient(100% 100% at 50% 0%, var(--surface) 0%, var(--surface-soft) 100%);
-    box-shadow: var(--shadow-3);
+    background: radial-gradient(120% 90% at 50% -10%, var(--surface) 0%, var(--surface-soft) 100%);
+    box-shadow: var(--shadow-4);
   }
   .panel__gauge {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-block: 8px;
+    margin-top: 4px;
+    margin-bottom: -22px;
   }
   
   /* Upper Results Row */
   .upper-results {
     display: flex;
+    align-items: stretch;
     justify-content: space-between;
     width: 100%;
-    border-bottom: 1.5px solid var(--hairline);
-    padding-bottom: 16px;
-    margin-bottom: 14px;
+    gap: 8px;
+  }
+  .upper-results__divider {
+    width: 1px;
+    align-self: center;
+    height: 56px;
+    background: linear-gradient(var(--hairline), var(--hairline-strong), var(--hairline));
   }
   .upper-metric {
     display: flex;
     flex-direction: column;
     align-items: center;
     flex: 1;
+    min-width: 0;
   }
   .upper-metric__label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     font-size: 11px;
     font-weight: 700;
     color: var(--text-muted);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
   }
   .upper-metric__icon {
@@ -655,51 +802,58 @@ import MetricCard from '../components/MetricCard.astro';
     background: color-mix(in srgb, var(--color-brand-blue) 15%, transparent);
   }
   .upper-metric__value {
-    font-size: 38px;
-    font-weight: 300;
+    font-size: 40px;
+    font-weight: 350;
     font-family: var(--font-sans);
     color: var(--text);
-    margin-top: 4px;
+    margin-top: 8px;
     line-height: 1;
-    min-height: 38px;
+    letter-spacing: -0.02em;
+    transition: color 0.35s var(--ease-out-quint);
   }
-  
+  .upper-metric__value[data-empty='true'] {
+    color: var(--hairline-strongest);
+  }
+  .upper-metric__unit {
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
   /* Ping Statistics Row */
   .ping-stats {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 16px;
-  }
-  .ping-stat-header {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .ping-stat-items {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hairline);
   }
   .ping-stat-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
+    justify-content: center;
+    gap: 9px;
+    padding: 8px 6px;
+    border-radius: var(--radius-md);
+    background: var(--surface-soft);
+    transition: background-color 0.2s var(--ease-out-quint);
+  }
+  .ping-stat-item:hover {
+    background: var(--surface-soft-2);
   }
   .ping-stat-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
+    flex: none;
   }
   .ping-stat-icon--idle {
     color: var(--color-amber);
@@ -713,26 +867,61 @@ import MetricCard from '../components/MetricCard.astro';
     color: var(--color-brand-blue);
     background: color-mix(in srgb, var(--color-brand-blue) 15%, transparent);
   }
-  
+  .ping-stat-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .ping-stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .ping-stat-value {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .ping-stat-value .tnum[data-empty='true'] {
+    color: var(--hairline-strongest);
+  }
+
   /* Category Ratings Row */
   .category-ratings {
     display: flex;
     justify-content: space-around;
     width: 100%;
-    border-bottom: 1.5px solid var(--hairline);
-    padding-bottom: 14px;
-    margin-bottom: 12px;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline);
   }
   .rating-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex: 1;
+    min-width: 0;
   }
   .rating-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-md);
+    background: var(--surface-soft);
     color: var(--text-faint);
-    transition: color 0.3s;
+    transition: color 0.3s, background-color 0.3s;
+  }
+  .rating-item[data-rated='true'] .rating-icon {
+    color: var(--text-muted);
+    background: var(--surface-soft-2);
   }
   .rating-dots {
     display: flex;
@@ -743,20 +932,29 @@ import MetricCard from '../components/MetricCard.astro';
     height: 5px;
     border-radius: 50%;
     background-color: var(--track);
-    transition: background-color 0.3s;
+    transition: background-color 0.3s var(--ease-out-quint), box-shadow 0.3s, transform 0.3s var(--ease-spring);
   }
   .rating-dot--active {
     background-color: var(--color-green);
-    box-shadow: 0 0 4px var(--color-green);
+    box-shadow: 0 0 5px color-mix(in srgb, var(--color-green) 70%, transparent);
   }
-  
+  .rating-label {
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--text-faint);
+  }
+
   /* Mode Selector inside panel */
   .panel__mode-selector {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    margin-top: 14px;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+    width: 100%;
   }
   .mode__hint {
     font-size: 11px;
@@ -814,47 +1012,49 @@ import MetricCard from '../components/MetricCard.astro';
   /* ── Bottom Info block ─────────────────────────────── */
   .bottom-info {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     width: 100%;
-    max-width: 500px;
-    margin: 24px auto 0;
-    padding: 0;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    gap: 16px;
+    max-width: 480px;
+    margin: 16px auto 0;
+    padding: 14px 18px;
+    gap: 12px;
   }
-  .bottom-info__client,
-  .bottom-info__server {
+  .bottom-info__node {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 11px;
     flex: 1;
     min-width: 0;
   }
-  .bottom-info__client {
-    justify-content: flex-end;
-  }
-  .bottom-info__server {
-    justify-content: flex-start;
+  .bottom-info__node--server {
+    flex-direction: row-reverse;
+    text-align: right;
   }
   .bottom-info__text {
     display: flex;
     flex-direction: column;
     min-width: 0;
   }
+  .bottom-info__eyebrow {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 3px;
+  }
   .bottom-info__title {
-    font-size: 15px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.25;
+    line-height: 1.2;
   }
   .bottom-info__sub {
-    font-size: 12.5px;
+    font-size: 11.5px;
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -863,16 +1063,65 @@ import MetricCard from '../components/MetricCard.astro';
     line-height: 1.2;
   }
   .bottom-info__icon-circle {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    border: 1px solid var(--hairline-strongest);
-    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text);
     flex: none;
+  }
+  .bottom-info__icon-circle--client {
+    color: var(--color-brand-blue);
+    background: color-mix(in srgb, var(--color-brand-blue) 12%, transparent);
+  }
+  .bottom-info__icon-circle--server {
+    color: var(--color-cyan-deep);
+    background: color-mix(in srgb, var(--color-cyan-deep) 12%, transparent);
+  }
+  /* Animated connection line between the two nodes. */
+  .bottom-info__link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: none;
+  }
+  .bottom-info__dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--hairline-strongest);
+  }
+  .bottom-info__dash {
+    position: relative;
+    width: 34px;
+    height: 2px;
+    border-radius: var(--radius-pill);
+    background: var(--hairline-strong);
+    overflow: hidden;
+  }
+  .bottom-info__dash::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, var(--color-brand-blue), transparent);
+    transform: translateX(-120%);
+    animation: linkFlow 2.6s var(--ease-out-quint) infinite;
+  }
+  @keyframes linkFlow {
+    to {
+      transform: translateX(320%);
+    }
+  }
+  @media (max-width: 400px) {
+    .bottom-info {
+      padding: 12px 12px;
+    }
+    .bottom-info__link {
+      display: none;
+    }
   }
 
   /* ── Sections ─────────────────────────────────────── */
@@ -1089,29 +1338,7 @@ import MetricCard from '../components/MetricCard.astro';
     grid-template-columns: repeat(2, 1fr);
     gap: 10px 18px;
   }
-  .subscore {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .subscore__top {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-  .subscore__bar {
-    height: 5px;
-    border-radius: var(--radius-pill);
-    background: var(--track);
-    overflow: hidden;
-  }
-  .subscore__fill {
-    height: 100%;
-    border-radius: inherit;
-    width: 0%;
-    transition: width 0.8s var(--ease-out-quint);
-  }
+  /* .subscore children are built in app.ts — styled globally (global.css). */
 
   .bloat {
     padding: 24px;
@@ -1203,31 +1430,7 @@ import MetricCard from '../components/MetricCard.astro';
       grid-template-columns: repeat(3, 1fr);
     }
   }
-  .cap {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--hairline);
-  }
-  .cap__dot {
-    margin-top: 4px;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    flex: none;
-  }
-  .cap__label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-  }
-  .cap__detail {
-    font-size: 12.5px;
-    color: var(--text-faint);
-    line-height: 1.45;
-    margin-top: 1px;
-  }
+  /* .cap children are built in app.ts — styled globally (global.css). */
 
   /* ── Share ────────────────────────────────────────── */
   .share {
@@ -1284,102 +1487,9 @@ import MetricCard from '../components/MetricCard.astro';
     filter: drop-shadow(0 2px 8px rgba(41, 188, 155, 0.15));
   }
   
-  /* Table Header */
-  .history__header-row {
-    display: grid;
-    grid-template-columns: 1.3fr repeat(3, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    background: var(--surface-soft-2);
-    border-bottom: 1px solid var(--hairline);
-  }
-  
-  .history__list {
-    display: flex;
-    flex-direction: column;
-  }
-  .history__row {
-    display: grid;
-    grid-template-columns: 1.3fr repeat(3, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--hairline);
-    transition: background-color 0.2s var(--ease-out-quint);
-  }
-  .history__row:hover {
-    background-color: var(--surface-soft);
-  }
-  .history__row:last-child {
-    border-bottom: none;
-  }
-  
-  .history__when {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-  .history__date {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .history__isp {
-    font-size: 11.5px;
-    color: var(--text-faint);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  /* Modern Badges for History list */
-  .history-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: var(--radius-pill);
-    font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .history-badge--download {
-    color: var(--color-cyan-deep);
-    background: color-mix(in srgb, var(--color-cyan-deep) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-cyan-deep) 20%, transparent);
-  }
-  .history-badge--upload {
-    color: var(--color-brand-blue);
-    background: color-mix(in srgb, var(--color-brand-blue) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-brand-blue) 20%, transparent);
-  }
-  .history-badge--ping {
-    color: var(--color-amber);
-    background: color-mix(in srgb, var(--color-amber) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-amber) 20%, transparent);
-  }
-  
-  .history__del {
-    color: var(--text-faint);
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.2s var(--ease-out-quint);
-    background: transparent;
-  }
-  .history__del:hover {
-    color: var(--color-red);
-    background: color-mix(in srgb, var(--color-red) 12%, transparent);
-    border-color: color-mix(in srgb, var(--color-red) 20%, transparent);
-  }
-  
+  /* History rows + badges are built in app.ts (createElement), so their styles
+     must be global — see global.css. Scoped rules here would never reach them. */
+
   /* Empty State UI */
   .history__empty-state {
     padding: 48px 24px;
@@ -1415,23 +1525,6 @@ import MetricCard from '../components/MetricCard.astro';
     line-height: 1.5;
   }
   
-  @media (max-width: 620px) {
-    .history__header-row,
-    .history__row {
-      grid-template-columns: 1.4fr repeat(2, 1fr) auto;
-      gap: 8px;
-      padding-inline: 12px;
-    }
-    .history__header-ping,
-    .history__stat-ping {
-      display: none !important;
-    }
-    .history-badge {
-      padding: 3px 8px;
-      font-size: 12px;
-    }
-  }
-
   /* ── Features ─────────────────────────────────────── */
   .features {
     display: grid;
@@ -1509,6 +1602,35 @@ import MetricCard from '../components/MetricCard.astro';
     text-wrap: pretty;
   }
 
+  /* ── Speed Test FAQ (SEO) ─────────────────────────── */
+  /* Answers stay visible (no accordion) so featured-snippet crawlers see them. */
+  .seo-faq {
+    display: flex;
+    flex-direction: column;
+  }
+  .seo-faq__item {
+    padding: 22px 0;
+    border-top: 1px solid var(--hairline);
+  }
+  .seo-faq__item:last-child {
+    border-bottom: 1px solid var(--hairline);
+  }
+  .seo-faq__q {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-wrap: balance;
+  }
+  .seo-faq__a {
+    margin-top: 8px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--text-muted);
+    max-width: 72ch;
+    text-wrap: pretty;
+  }
+
   /* ── Shared banner ────────────────────────────────── */
   .shared-banner {
     background: var(--surface-soft-2);
@@ -1526,5 +1648,78 @@ import MetricCard from '../components/MetricCard.astro';
     min-width: 200px;
     font-size: 14px;
     color: var(--text-muted);
+  }
+
+  /* ── Mobile refinements ───────────────────────────────── */
+  @media (max-width: 640px) {
+    .hero {
+      padding-top: 24px;
+    }
+    .panel {
+      margin-top: 28px;
+      padding: 18px 16px 16px;
+      border-radius: var(--radius-xl);
+    }
+    .bottom-info {
+      padding: 14px 14px;
+    }
+    .section {
+      padding-top: 52px;
+    }
+    .section__head {
+      margin-bottom: 20px;
+    }
+    /* Throughput legend reads cleaner stacked under its heading. */
+    .graph__head {
+      flex-direction: column;
+      gap: 8px;
+    }
+    /* Share: full-width prompt over a 2×2 grid of actions instead of a cramped
+       right-aligned wrap. */
+    .share {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+    .share__btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .share__btns .btn {
+      width: 100%;
+    }
+    /* Insights score ring centers above its copy rather than squeezing beside it. */
+    .score {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 18px;
+    }
+    .score__meta {
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .panel {
+      padding: 16px 12px 14px;
+    }
+    .upper-metric__value {
+      font-size: 34px;
+    }
+    /* Keep the three ping tiles legible when horizontal room is tightest. */
+    .ping-stats {
+      gap: 6px;
+    }
+    .ping-stat-item {
+      gap: 6px;
+      padding-inline: 3px;
+    }
+    .category-ratings {
+      gap: 4px;
+    }
+    .subscores {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

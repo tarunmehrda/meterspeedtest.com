@@ -1,4 +1,8 @@
+# robots.txt — https://meterspeedtest.com
+# The Meter internet speed test is fully public; crawl everything.
+
 User-agent: *
 Allow: /
 
+# Point crawlers at the auto-generated sitemap index.
 Sitemap: https://meterspeedtest.com/sitemap-index.xml

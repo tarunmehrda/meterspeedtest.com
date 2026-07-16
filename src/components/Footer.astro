@@ -16,31 +16,41 @@ const year = new Date().getFullYear();
     <div class="footer__cols">
       <div class="footer__col">
         <h2 class="footer__head">Test</h2>
-        <a href="#top" class="footer__link">Run a test</a>
-        <a href="#metrics" class="footer__link">Detailed results</a>
-        <a href="#insights" class="footer__link">Connection insights</a>
-        <a href="#history" class="footer__link">History</a>
+        <a href="/#top" class="footer__link">Run a test</a>
+        <a href="/#metrics" class="footer__link">Detailed results</a>
+        <a href="/#insights" class="footer__link">Connection insights</a>
+        <a href="/#history" class="footer__link">History</a>
       </div>
       <div class="footer__col">
         <h2 class="footer__head">Learn</h2>
-        <a href="#faq" class="footer__link">What is bufferbloat?</a>
-        <a href="#faq" class="footer__link">Ping vs. jitter</a>
-        <a href="#faq" class="footer__link">How Meter measures</a>
-        <a href="#faq" class="footer__link">FAQ</a>
+        <a href="/#faq" class="footer__link">FAQ</a>
+        <a href="/#speed-test-faq" class="footer__link">Speed Test guide</a>
+        <a href="/#faq" class="footer__link">What is bufferbloat?</a>
+        <a href="/#faq" class="footer__link">How Meter measures</a>
       </div>
       <div class="footer__col">
-        <h2 class="footer__head">Meter</h2>
-        <a href="/privacy" class="footer__link">Privacy</a>
-        <a href="/about" class="footer__link">About</a>
+        <h2 class="footer__head">Company</h2>
+        <a href="/about" class="footer__link">About us</a>
+        <a href="/contact" class="footer__link">Contact us</a>
         <a href="https://github.com" class="footer__link" target="_blank" rel="noopener noreferrer"
           >Source</a
         >
+      </div>
+      <div class="footer__col">
+        <h2 class="footer__head">Legal</h2>
+        <a href="/privacy" class="footer__link">Privacy Policy</a>
+        <a href="/terms" class="footer__link">Terms &amp; Conditions</a>
       </div>
     </div>
   </div>
 
   <div class="container-page footer__bar">
     <span>© {year} Meter Speed Test</span>
+    <nav class="footer__legal" aria-label="Legal">
+      <a href="/privacy" class="footer__legal-link">Privacy</a>
+      <a href="/terms" class="footer__legal-link">Terms</a>
+      <a href="/contact" class="footer__legal-link">Contact</a>
+    </nav>
     <span class="footer__mono">meterspeedtest.com</span>
   </div>
 </footer>
@@ -67,8 +77,8 @@ const year = new Date().getFullYear();
   }
   .footer__cols {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 20px;
   }
   .footer__head {
     font-family: var(--font-mono);
@@ -96,22 +106,37 @@ const year = new Date().getFullYear();
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
     color: var(--text-faint);
     font-size: 13px;
+  }
+  .footer__legal {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .footer__legal-link {
+    color: var(--text-faint);
+    transition: color 0.15s;
+  }
+  .footer__legal-link:hover {
+    color: var(--text);
   }
   .footer__mono {
     font-family: var(--font-mono);
   }
 
-  @media (min-width: 760px) {
-    .footer__inner {
-      grid-template-columns: 1.4fr 2fr;
-      gap: 64px;
+  @media (min-width: 620px) {
+    .footer__cols {
+      grid-template-columns: repeat(4, 1fr);
     }
   }
-  @media (max-width: 520px) {
-    .footer__cols {
-      grid-template-columns: repeat(2, 1fr);
+  @media (min-width: 760px) {
+    .footer__inner {
+      grid-template-columns: 1fr 2.4fr;
+      gap: 56px;
     }
   }
 </style>

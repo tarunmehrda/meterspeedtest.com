@@ -1,0 +1,118 @@
+---
+import Content from '../layouts/Content.astro';
+
+// Contact channels rendered as cards. Static site → email links rather than a
+// server-backed form, so nothing breaks and no data is silently collected.
+const channels = [
+  {
+    label: 'General & support',
+    email: 'hello@meterspeedtest.com',
+    detail: 'Questions about Meter, bug reports, or trouble getting an accurate result.',
+  },
+  {
+    label: 'Privacy',
+    email: 'privacy@meterspeedtest.com',
+    detail: 'Anything about your data, this site’s Privacy Policy, or a privacy request.',
+  },
+  {
+    label: 'Feedback & ideas',
+    email: 'hello@meterspeedtest.com',
+    detail: 'Suggestions, feature requests, or a metric you wish we measured.',
+  },
+];
+---
+
+<Content
+  title="Contact Us | Meter Speed Test"
+  description="Get in touch with the Meter Speed Test team. Reach us by email for support, bug reports, privacy questions or feedback about our free internet speed test."
+  path="/contact"
+  heading="Contact Us"
+  eyebrow="Contact"
+  intro="We’d love to hear from you — whether something isn’t working, you have a question about a result, or you have an idea to make Meter better."
+>
+  <div class="contact-grid" role="list">
+    {
+      channels.map((c) => (
+        <a class="contact-card" role="listitem" href={`mailto:${c.email}`}>
+          <span class="contact-card__label">{c.label}</span>
+          <span class="contact-card__email">{c.email}</span>
+          <span class="contact-card__detail">{c.detail}</span>
+        </a>
+      ))
+    }
+  </div>
+
+  <h2>Before you write</h2>
+  <p>
+    If you’re troubleshooting a speed test result, our <a href="/#faq">FAQ</a> answers the most common
+    questions — like why your result differs from your plan’s speed, what latency under load means,
+    and how much data a test uses. It’s often the fastest way to an answer.
+  </p>
+  <p>
+    When you email us about a specific result, it helps to include your device and browser, whether
+    you were on Wi-Fi or a wired connection, and roughly what speed you expected. The more context you
+    share, the faster we can help.
+  </p>
+
+  <h2>Response time</h2>
+  <p>
+    Meter is a small, independent project, so replies may take a little time — but we read every
+    message. Thanks for helping us make the test better.
+  </p>
+
+  <p>
+    Learn more <a href="/about">about Meter</a>, or review our
+    <a href="/privacy">Privacy Policy</a> and <a href="/terms">Terms &amp; Conditions</a>.
+  </p>
+</Content>
+
+<style>
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  @media (min-width: 640px) {
+    .contact-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .contact-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+    transition: border-color 0.18s var(--ease-out-quint), box-shadow 0.18s var(--ease-out-quint),
+      transform 0.18s var(--ease-out-quint);
+  }
+  .contact-card:hover {
+    border-color: var(--hairline-strong);
+    box-shadow: var(--shadow-4);
+    transform: translateY(-2px);
+  }
+  .contact-card__label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .contact-card__email {
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-brand-blue);
+    overflow-wrap: anywhere;
+  }
+  .contact-card__detail {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+</style>

@@ -1,0 +1,219 @@
+---
+import Base from './Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  /** <title> / social title. */
+  title: string;
+  description: string;
+  /** Route this page lives at, e.g. '/about'. Drives canonical + schema. */
+  path: string;
+  /** Visible H1. */
+  heading: string;
+  /** Small mono label above the H1. */
+  eyebrow?: string;
+  /** Lead paragraph under the H1. */
+  intro?: string;
+  /** "Last updated" stamp for legal pages. */
+  updated?: string;
+}
+
+const { title, description, path, heading, eyebrow, intro, updated } = Astro.props;
+
+const site = 'https://meterspeedtest.com';
+
+// Per-page structured data: a WebPage node wired to the site-wide WebSite, plus a
+// Home → this-page breadcrumb trail. Merges into Base's @graph via the schemas prop.
+const pageSchemas = [
+  {
+    '@type': 'WebPage',
+    '@id': `${site}${path}#webpage`,
+    url: `${site}${path}`,
+    name: title,
+    description,
+    isPartOf: { '@id': `${site}/#website` },
+    inLanguage: 'en',
+  },
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${site}/` },
+      { '@type': 'ListItem', position: 2, name: heading, item: `${site}${path}` },
+    ],
+  },
+];
+---
+
+<Base title={title} description={description} path={path} schemas={pageSchemas}>
+  <Nav />
+
+  <main id="main" class="page">
+    <header class="page__head">
+      <div class="page__wrap">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          <span class="crumbs__sep" aria-hidden="true">/</span>
+          <span aria-current="page">{heading}</span>
+        </nav>
+        {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+        <h1 class="page__title">{heading}</h1>
+        {intro && <p class="page__intro">{intro}</p>}
+        {updated && <p class="page__updated">Last updated: {updated}</p>}
+      </div>
+    </header>
+
+    <div class="page__wrap">
+      <article class="prose">
+        <slot />
+      </article>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  .page {
+    padding-top: 20px;
+  }
+  .page__wrap {
+    width: 100%;
+    max-width: 760px;
+    margin-inline: auto;
+    padding-inline: max(24px, env(safe-area-inset-left)) max(24px, env(safe-area-inset-right));
+  }
+  @media (max-width: 640px) {
+    .page__wrap {
+      padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+    }
+  }
+  .page__head {
+    padding-block: 28px 24px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-bottom: 18px;
+  }
+  .crumbs a {
+    color: var(--text-muted);
+    transition: color 0.15s;
+  }
+  .crumbs a:hover {
+    color: var(--text);
+  }
+  .crumbs__sep {
+    color: var(--hairline-strongest);
+  }
+  .page__title {
+    margin-top: 10px;
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .page__intro {
+    margin-top: 16px;
+    max-width: 60ch;
+    font-size: clamp(16px, 2.2vw, 18px);
+    line-height: 1.55;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+  .page__updated {
+    margin-top: 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--text-faint);
+  }
+</style>
+
+<!-- Prose styles are global: the article's children are slotted from the page
+     component, so they never receive this layout's scope attribute. -->
+<style is:global>
+  .prose {
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  .prose > * + * {
+    margin-top: 1.1em;
+  }
+  .prose h2 {
+    margin-top: 2em;
+    font-size: clamp(21px, 3vw, 26px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    scroll-margin-top: 80px;
+  }
+  .prose h3 {
+    margin-top: 1.7em;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    scroll-margin-top: 80px;
+  }
+  .prose p,
+  .prose li {
+    text-wrap: pretty;
+  }
+  .prose a {
+    color: var(--color-brand-blue);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--color-brand-blue) 45%, transparent);
+    transition: color 0.15s, text-decoration-color 0.15s;
+  }
+  .prose a:hover {
+    color: var(--color-brand-blue-deep);
+    text-decoration-color: currentColor;
+  }
+  .prose strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .prose ul,
+  .prose ol {
+    padding-left: 1.35em;
+  }
+  .prose ul {
+    list-style: disc;
+  }
+  .prose ol {
+    list-style: decimal;
+  }
+  .prose li {
+    margin-top: 0.5em;
+    padding-left: 0.2em;
+  }
+  .prose li::marker {
+    color: var(--hairline-strongest);
+  }
+  .prose li > ul,
+  .prose li > ol {
+    margin-top: 0.5em;
+  }
+  .prose hr {
+    border: none;
+    border-top: 1px solid var(--hairline);
+    margin-block: 2em;
+  }
+  .prose code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    padding: 0.15em 0.4em;
+    border-radius: var(--radius-sm);
+    background: var(--surface-soft-2);
+    color: var(--text);
+  }
+</style>

@@ -3,7 +3,7 @@
  * gauge animation, live metrics, throughput graph, insights, history, sharing.
  */
 
-import { SpeedTest, type FullResult, type Phase, type EngineConfig } from '../lib/speedtest';
+import { SpeedTest, type FullResult, type EngineConfig } from '../lib/speedtest';
 import { fractionToAngle, speedToFraction, latencyToFraction } from '../lib/gauge';
 import * as fmt from '../lib/format';
 import { analyze, levelColorVar, type Level } from '../lib/insights';
@@ -19,6 +19,24 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string): T | null =>
 function setText(id: string, text: string): void {
   const e = document.getElementById(id);
   if (e) e.textContent = text;
+}
+
+/** Set a live readout value and clear its dimmed "empty" placeholder state. */
+function setUpper(id: string, text: string): void {
+  const e = document.getElementById(id);
+  if (e) {
+    e.textContent = text;
+    e.removeAttribute('data-empty');
+  }
+}
+
+/** Return a live readout to its dimmed placeholder (e.g. "0.00" or "—"). */
+function clearUpper(id: string, placeholder: string): void {
+  const e = document.getElementById(id);
+  if (e) {
+    e.textContent = placeholder;
+    e.setAttribute('data-empty', 'true');
+  }
 }
 
 // ── Mode profiles ──────────────────────────────────────────────────
@@ -51,13 +69,6 @@ const MODES: Record<Mode, Partial<EngineConfig> & { hint: string }> = {
   },
 };
 let mode: Mode = 'balanced';
-
-const PHASE_COLOR: Partial<Record<Phase, string>> = {
-  latency: 'var(--color-amber)',
-  download: 'var(--color-cyan-deep)',
-  upload: 'var(--color-brand-blue)',
-  done: 'var(--color-green)',
-};
 
 // ── Gauge animation ────────────────────────────────────────────────
 const dataGauge = document.querySelector<HTMLElement>('[data-gauge]');
@@ -452,18 +463,27 @@ function renderHistory(): void {
   const listEl = $('history-list');
   const emptyEl = $('history-empty');
   const trendWrap = $('history-trend-wrap');
-  const headerEl = $('history-header');
   if (!listEl) return;
 
   listEl.innerHTML = '';
   if (!list.length) {
     if (emptyEl) emptyEl.style.display = 'flex';
     if (trendWrap) trendWrap.hidden = true;
-    if (headerEl) headerEl.setAttribute('hidden', '');
     return;
   }
   if (emptyEl) emptyEl.style.display = 'none';
-  if (headerEl) headerEl.removeAttribute('hidden');
+
+  const badge = (kind: 'download' | 'upload' | 'ping', icon: string, value: string, unit: string): string => `
+    <span class="history-badge history-badge--${kind}">
+      <svg class="history-badge__icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>
+      <span class="history-badge__num tnum">${value}</span>
+      <span class="history-badge__unit">${unit}</span>
+    </span>`;
+  const ICON = {
+    down: '<path d="M12 5v14M19 12l-7 7-7-7"/>',
+    up: '<path d="M12 19V5M5 12l7-7 7 7"/>',
+    ping: '<path d="M4 12h3l2-5 3 10 2-7 2 2h5"/>',
+  };
 
   list.forEach((r) => {
     const row = document.createElement('li');
@@ -480,51 +500,25 @@ function renderHistory(): void {
     isp.textContent = r.meta?.isp || 'Unknown ISP';
     when.append(date, isp);
 
-    // Download cell
-    const dlCell = document.createElement('div');
-    dlCell.className = 'history__cell text-center';
-    dlCell.innerHTML = `
-      <span class="history-badge history-badge--download">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline mr-1"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-        <span class="tnum font-semibold">${fmt.speed(r.download.mbps)}</span>
-        <span class="text-[9px] opacity-70 ml-0.5">Mbps</span>
-      </span>
-    `;
-
-    // Upload cell
-    const ulCell = document.createElement('div');
-    ulCell.className = 'history__cell text-center';
-    ulCell.innerHTML = `
-      <span class="history-badge history-badge--upload">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline mr-1"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-        <span class="tnum font-semibold">${fmt.speed(r.upload.mbps)}</span>
-        <span class="text-[9px] opacity-70 ml-0.5">Mbps</span>
-      </span>
-    `;
-
-    // Ping cell
-    const pingCell = document.createElement('div');
-    pingCell.className = 'history__cell text-center history__stat-ping';
-    pingCell.innerHTML = `
-      <span class="history-badge history-badge--ping">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline mr-1"><path d="M4 12h3l2-5 3 10 2-7 2 2h5"/></svg>
-        <span class="tnum font-semibold">${fmt.ms(r.latency.ping)}</span>
-        <span class="text-[9px] opacity-70 ml-0.5">ms</span>
-      </span>
-    `;
+    const stats = document.createElement('div');
+    stats.className = 'history__stats';
+    stats.innerHTML =
+      badge('download', ICON.down, fmt.speed(r.download.mbps), 'Mbps') +
+      badge('upload', ICON.up, fmt.speed(r.upload.mbps), 'Mbps') +
+      badge('ping', ICON.ping, fmt.ms(r.latency.ping), 'ms');
 
     const del = document.createElement('button');
     del.type = 'button';
     del.className = 'history__del';
     del.setAttribute('aria-label', `Delete test from ${fmt.dateTime(r.timestamp)}`);
     del.innerHTML =
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 7h12M9 7V5h6v2m-7 0 .7 12a1 1 0 0 0 1 1h4.6a1 1 0 0 0 1-1L16 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 7h12M9 7V5h6v2m-7 0 .7 12a1 1 0 0 0 1 1h4.6a1 1 0 0 0 1-1L16 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     del.addEventListener('click', () => {
       removeResult(r.id);
       renderHistory();
     });
 
-    row.append(when, dlCell, ulCell, pingCell, del);
+    row.append(when, stats, del);
     listEl.append(row);
   });
 
@@ -634,12 +628,12 @@ function resetForRun(): void {
     }
   });
 
-  // Reset upper text values
-  setText('upper-download', '—');
-  setText('upper-upload', '—');
-  setText('upper-ping-idle', '—');
-  setText('upper-ping-download', '—');
-  setText('upper-ping-upload', '—');
+  // Reset upper readouts to their dimmed placeholder state.
+  clearUpper('upper-download', '0.00');
+  clearUpper('upper-upload', '0.00');
+  clearUpper('upper-ping-idle', '—');
+  clearUpper('upper-ping-download', '—');
+  clearUpper('upper-ping-upload', '—');
   resetCategoryDots();
 
   (['latency', 'download', 'upload'] as const).forEach((p) => setPip(p, ''));
@@ -651,13 +645,12 @@ function resetForRun(): void {
 function setDots(containerId: string, count: number): void {
   const container = document.getElementById(containerId);
   if (!container) return;
+  container.closest('.rating-item')?.setAttribute('data-rated', count > 0 ? 'true' : 'false');
   const dots = container.querySelectorAll('.rating-dot');
   dots.forEach((dot, idx) => {
-    if (idx < count) {
-      dot.classList.add('rating-dot--active');
-    } else {
-      dot.classList.remove('rating-dot--active');
-    }
+    // Staggered reveal so the rating "fills in" left-to-right.
+    (dot as HTMLElement).style.transitionDelay = idx < count ? `${idx * 60}ms` : '0ms';
+    dot.classList.toggle('rating-dot--active', idx < count);
   });
 }
 
@@ -665,7 +658,9 @@ function resetCategoryDots(): void {
   ['dots-web', 'dots-game', 'dots-video', 'dots-call'].forEach((id) => {
     const container = document.getElementById(id);
     if (!container) return;
+    container.closest('.rating-item')?.removeAttribute('data-rated');
     container.querySelectorAll('.rating-dot').forEach((dot) => {
+      (dot as HTMLElement).style.transitionDelay = '0ms';
       dot.classList.remove('rating-dot--active');
     });
   });
@@ -706,7 +701,6 @@ async function runTest(): Promise<void> {
     .on('phase', (phase, label) => {
       setText('status', label + (phase === 'download' || phase === 'upload' ? '…' : ''));
       dataGauge?.setAttribute('data-phase', phase); // drives the arc gradient morph
-      const c = PHASE_COLOR[phase];
       if (phase === 'latency') {
         gaugeUnit = 'ms';
         resetGaugeValue();
@@ -733,17 +727,17 @@ async function runTest(): Promise<void> {
       if (p.unit === 'ms') {
         setGauge(p.value, 'ms', latencyToFraction(p.value));
         if (p.phase === 'latency') {
-          setText('upper-ping-idle', fmt.ms(p.value));
+          setUpper('upper-ping-idle', fmt.ms(p.value));
         }
       } else {
         setGauge(p.value, 'mbps', speedToFraction(p.value));
         const metric = p.phase === 'download' ? 'download' : 'upload';
         setMetric(metric, fmt.speed(p.value));
         if (p.phase === 'download') {
-          setText('upper-download', fmt.speed(p.value));
+          setUpper('upper-download', fmt.speed(p.value));
           dlSeries.push(p.value);
         } else {
-          setText('upper-upload', fmt.speed(p.value));
+          setUpper('upper-upload', fmt.speed(p.value));
           ulSeries.push(p.value);
         }
         drawGraph();
@@ -752,7 +746,7 @@ async function runTest(): Promise<void> {
     .on('latency', (l) => {
       if (l.ping !== undefined) {
         setMetric('ping', fmt.ms(l.ping), 'Round-trip delay, idle');
-        setText('upper-ping-idle', fmt.ms(l.ping));
+        setUpper('upper-ping-idle', fmt.ms(l.ping));
       }
       if (l.jitter !== undefined) setMetric('jitter', fmt.ms(l.jitter), 'How steady the delay is');
       if (l.loss !== undefined) setMetric('loss', l.loss.toFixed(1), 'Failed probes (est.)');
@@ -761,7 +755,7 @@ async function runTest(): Promise<void> {
       setText('h-download', `Peak ${fmt.speed(d.peak)} ${fmt.speedUnit(d.peak)}`);
       countUp('m-download', d.mbps, (n) => fmt.speed(n));
       pop('m-download');
-      setText('upper-download', fmt.speed(d.mbps));
+      setUpper('upper-download', fmt.speed(d.mbps));
       dlSeries = d.samples.map((s) => s.mbps);
       drawGraph();
     })
@@ -769,7 +763,7 @@ async function runTest(): Promise<void> {
       setText('h-upload', `Peak ${fmt.speed(u.peak)} ${fmt.speedUnit(u.peak)}`);
       countUp('m-upload', u.mbps, (n) => fmt.speed(n));
       pop('m-upload');
-      setText('upper-upload', fmt.speed(u.mbps));
+      setUpper('upper-upload', fmt.speed(u.mbps));
       ulSeries = u.samples.map((s) => s.mbps);
       drawGraph();
     })
@@ -804,12 +798,12 @@ function onDone(r: FullResult): void {
   dataGauge?.setAttribute('data-phase', 'done');
 
   // Set upper values
-  setText('upper-ping-idle', fmt.ms(r.latency.ping));
-  setText('upper-ping-download', fmt.ms(r.loadedLatency));
+  setUpper('upper-ping-idle', fmt.ms(r.latency.ping));
+  setUpper('upper-ping-download', fmt.ms(r.loadedLatency));
   const uploadPing = Math.round(r.loadedLatency + (r.latency.jitter || 2) * 0.8);
-  setText('upper-ping-upload', fmt.ms(uploadPing));
-  setText('upper-download', fmt.speed(r.download.mbps));
-  setText('upper-upload', fmt.speed(r.upload.mbps));
+  setUpper('upper-ping-upload', fmt.ms(uploadPing));
+  setUpper('upper-download', fmt.speed(r.download.mbps));
+  setUpper('upper-upload', fmt.speed(r.upload.mbps));
 
   // Settle the gauge on the download figure.
   setGauge(r.download.mbps, 'mbps', speedToFraction(r.download.mbps));
@@ -932,9 +926,12 @@ function init(): void {
     }
   });
 
-  // Click on gauge outer area while running to stop the test
+  // Click on the gauge (outside the GO button) while running to stop the test.
+  // Use closest() so clicking the "GO" label — a child of the button — still
+  // counts as a GO press and does not immediately abort the run.
   document.querySelector('.gauge')?.addEventListener('click', (e) => {
-    if (running && e.target !== $('go-btn')) {
+    const onGo = (e.target as Element | null)?.closest('#go-btn');
+    if (running && !onGo) {
       current?.stop();
     }
   });

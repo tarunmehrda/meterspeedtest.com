@@ -176,6 +176,32 @@ const cy = GAUGE.cy;
   .go-btn:active {
     transform: scale(0.96);
   }
+  /* Gentle expanding-ring "tap me" invite. Sits on a pseudo-element so it never
+     fights the button's own hover / hidden transforms. */
+  .go-btn::after {
+    content: '';
+    position: absolute;
+    inset: -3.5px;
+    border-radius: 50%;
+    border: 2px solid var(--color-brand-blue);
+    opacity: 0;
+    pointer-events: none;
+    animation: goPulse 2.8s var(--ease-out-quint) infinite;
+  }
+  .go-btn:hover::after {
+    animation-play-state: paused;
+  }
+  @keyframes goPulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    70%,
+    100% {
+      transform: scale(1.3);
+      opacity: 0;
+    }
+  }
   .go-btn__text {
     font-size: 34px;
     font-weight: 700;
@@ -399,6 +425,19 @@ const cy = GAUGE.cy;
     border-bottom: 5px solid #fff;
     border-top: 0;
     margin-bottom: 1px;
+  }
+
+  @media (max-width: 380px) {
+    #gauge-value {
+      font-size: 40px;
+    }
+    .go-btn {
+      width: 116px;
+      height: 116px;
+    }
+    .go-btn__text {
+      font-size: 30px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

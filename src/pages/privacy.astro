@@ -1,0 +1,100 @@
+---
+import Content from '../layouts/Content.astro';
+---
+
+<Content
+  title="Privacy Policy | Meter Speed Test"
+  description="How Meter Speed Test handles your data: test results stay in your browser, no accounts, no tracking. Learn what data is processed when you run an internet speed test."
+  path="/privacy"
+  heading="Privacy Policy"
+  eyebrow="Legal"
+  intro="Meter is built to be private by default. This policy explains, in plain language, what happens to your data when you use meterspeedtest.com."
+  updated="July 17, 2026"
+>
+  <h2>The short version</h2>
+  <ul>
+    <li>We do <strong>not</strong> require an account, name, email or sign-up to use Meter.</li>
+    <li>Your speed test history is stored <strong>locally in your browser</strong> — not on our servers.</li>
+    <li>We do <strong>not</strong> sell your data or use advertising or cross-site tracking cookies.</li>
+    <li>Running a test connects your browser to third-party networks (such as Cloudflare) that necessarily see your IP address to deliver the measurement.</li>
+  </ul>
+
+  <h2>Data stored on your device</h2>
+  <p>
+    Meter saves a few things in your browser’s <code>localStorage</code> so the app works the way you
+    expect:
+  </p>
+  <ul>
+    <li><strong>Test history</strong> — the results of tests you run (download, upload, ping and related metrics, plus a timestamp) so you can track performance over time.</li>
+    <li><strong>Theme preference</strong> — whether you chose light or dark mode.</li>
+  </ul>
+  <p>
+    This information never leaves your device unless you deliberately export or share it. You can
+    erase it at any time using the <strong>Clear</strong> button in the History section, or by
+    clearing your browser’s site data for meterspeedtest.com.
+  </p>
+
+  <h2>Data processed when you run a test</h2>
+  <p>
+    A speed test works by moving real data between your device and measurement servers, so some
+    processing by third parties is unavoidable:
+  </p>
+  <ul>
+    <li>
+      <strong>Cloudflare.</strong> Tests stream data to and from Cloudflare’s global edge network.
+      To route that traffic, Cloudflare processes your IP address and standard connection details.
+      This is handled under Cloudflare’s own privacy terms.
+    </li>
+    <li>
+      <strong>Connection information.</strong> To display “your connection” details such as your
+      approximate ISP and IP address, Meter requests that information at test time and shows it back
+      to you in your browser. We do not retain it on a server.
+    </li>
+    <li>
+      <strong>Google Fonts.</strong> The site loads its typefaces from Google’s font CDN, which means
+      your browser makes a request to Google that includes your IP address. This is handled under
+      Google’s privacy terms.
+    </li>
+  </ul>
+
+  <h2>Cookies and tracking</h2>
+  <p>
+    Meter does not use advertising cookies or cross-site tracking pixels. The site relies on
+    <code>localStorage</code> (described above) rather than tracking cookies. We do not build
+    advertising profiles and we do not sell or rent any information about you.
+  </p>
+
+  <h2>Sharing results</h2>
+  <p>
+    If you use the share or copy-link feature, your result is encoded directly into the link itself.
+    Anyone you send that link to can read the numbers contained in it, but the data is not stored on
+    a central server — it travels in the URL. Share links only where you’re comfortable revealing the
+    result.
+  </p>
+
+  <h2>Children’s privacy</h2>
+  <p>
+    Meter is a general-audience utility and is not directed at children under 13. We do not knowingly
+    collect personal information from children.
+  </p>
+
+  <h2>Your choices</h2>
+  <ul>
+    <li>Clear your local history at any time from the History section, or via your browser settings.</li>
+    <li>Use private/incognito browsing to prevent any local history from persisting.</li>
+    <li>Block third-party font loading with a browser extension if you prefer (the site still works).</li>
+  </ul>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    We may update this policy as the product evolves. When we do, we’ll revise the “Last updated”
+    date at the top of this page. Significant changes will be reflected here.
+  </p>
+
+  <h2>Contact us</h2>
+  <p>
+    Questions about privacy? Reach us at
+    <a href="mailto:privacy@meterspeedtest.com">privacy@meterspeedtest.com</a>, or visit our
+    <a href="/contact">Contact page</a>. See also our <a href="/terms">Terms &amp; Conditions</a>.
+  </p>
+</Content>

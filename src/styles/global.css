@@ -144,6 +144,10 @@
     font-feature-settings: "ss01", "cv01", "cv03";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Guard against a stray wide child forcing a horizontal scrollbar on mobile.
+       `clip` (not `hidden`) avoids creating a scroll container that would break
+       the sticky nav. */
+    overflow-x: clip;
   }
 
   ::selection {
@@ -340,6 +344,224 @@
   }
 }
 
+/* ------------------------------------------------------------------ *
+ *  Dynamically-generated component styles (GLOBAL, not scoped)
+ *
+ *  These elements are built at runtime in app.ts via createElement, so
+ *  they never receive Astro's per-component scoping attribute. Their
+ *  styles MUST live here (global) — scoped rules in the .astro files
+ *  would silently fail to match. Applies to: history rows, insight
+ *  subscores, and capability list items.
+ * ------------------------------------------------------------------ */
+
+/* History list rows */
+.history__list {
+  display: flex;
+  flex-direction: column;
+}
+.history__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--hairline);
+  transition: background-color 0.18s var(--ease-out-quint);
+  animation: historyRowIn 0.4s var(--ease-out-quint) both;
+}
+.history__row:last-child {
+  border-bottom: none;
+}
+.history__row:hover {
+  background-color: var(--surface-soft);
+}
+@keyframes historyRowIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.history__when {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.history__date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+.history__isp {
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.history__stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.history-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  line-height: 1;
+}
+.history-badge__icon {
+  flex: none;
+}
+.history-badge__num {
+  font-weight: 700;
+  font-size: 14px;
+}
+.history-badge__unit {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.history-badge--download {
+  color: var(--color-cyan-deep);
+  background: color-mix(in srgb, var(--color-cyan-deep) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-cyan-deep) 22%, transparent);
+}
+.history-badge--upload {
+  color: var(--color-brand-blue);
+  background: color-mix(in srgb, var(--color-brand-blue) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-brand-blue) 22%, transparent);
+}
+.history-badge--ping {
+  color: var(--color-amber);
+  background: color-mix(in srgb, var(--color-amber) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-amber) 24%, transparent);
+}
+.history__del {
+  flex: none;
+  color: var(--text-faint);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  opacity: 0;
+  transition: color 0.18s var(--ease-out-quint), background-color 0.18s var(--ease-out-quint),
+    border-color 0.18s var(--ease-out-quint), opacity 0.18s var(--ease-out-quint);
+}
+.history__row:hover .history__del,
+.history__del:focus-visible {
+  opacity: 1;
+}
+.history__del:hover {
+  color: var(--color-red);
+  background: color-mix(in srgb, var(--color-red) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-red) 22%, transparent);
+}
+@media (max-width: 560px) {
+  .history__row {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 16px;
+    position: relative;
+  }
+  .history__when {
+    flex-basis: 100%;
+    padding-right: 36px;
+  }
+  .history__stats {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+  }
+  .history-badge {
+    padding: 4px 9px;
+  }
+  .history-badge__num {
+    font-size: 13px;
+  }
+  .history__del {
+    opacity: 1;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Insight subscores (score card) */
+.subscore {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.subscore__top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.subscore__bar {
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  overflow: hidden;
+}
+.subscore__fill {
+  height: 100%;
+  border-radius: inherit;
+  width: 0%;
+  transition: width 0.8s var(--ease-out-quint);
+}
+
+/* Capability list items ("what your line can do") */
+.cap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.cap__dot {
+  margin-top: 5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+.cap__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.cap__detail {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  line-height: 1.45;
+  margin-top: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .history__row {
+    animation: none;
+  }
+}
+
 /* One-shot scale pop applied by JS when a final value lands. */
 .value-pop {
   display: inline-block;
@@ -365,5 +587,20 @@
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+/* Touch devices: grow the smallest controls toward a comfortable ~44px target.
+   Unlayered so it reliably wins over the @layer components base sizes. */
+@media (pointer: coarse) {
+  .segment button {
+    height: 40px;
+    padding-inline: 16px;
+  }
+  .btn-ghost {
+    height: 40px;
+  }
+  .btn-sm {
+    height: 40px;
   }
 }

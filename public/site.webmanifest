@@ -1,17 +1,35 @@
 {
+  "id": "/",
   "name": "Meter Speed Test",
   "short_name": "Meter",
-  "description": "Fast, accurate, private internet speed test.",
+  "description": "Free, accurate, private internet speed test — measure download, upload, ping, jitter, latency and packet loss.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["utilities", "productivity"],
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
   "icons": [
     {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

@@ -1,0 +1,77 @@
+---
+import Content from '../layouts/Content.astro';
+---
+
+<Content
+  title="About Meter — Our Internet Speed Test | Meter Speed Test"
+  description="Learn about Meter Speed Test: why we built a fast, private, no-sign-up internet speed test, how it measures download, upload, ping and latency under load, and what makes it different."
+  path="/about"
+  heading="About Meter"
+  eyebrow="About us"
+  intro="Meter is a fast, private internet speed test built to give you honest numbers about your connection — and, just as importantly, to explain what those numbers actually mean for the things you do online."
+>
+  <h2>Why we built Meter</h2>
+  <p>
+    Most speed tests hand you a download figure and leave you to guess whether it’s good. But a fast
+    download number can hide a connection that stutters on video calls, lags in games, or buffers
+    during a movie night. We built <strong>Meter</strong> because the number that appears on your bill
+    is rarely the number you actually experience — and the gap matters.
+  </p>
+  <p>
+    Our goal is simple: measure your connection the way real apps stress it, then translate the raw
+    results into plain language. Instead of stopping at “<strong>250 Mbps</strong>,” Meter tells you
+    whether your line can comfortably handle several 4K streams, a competitive gaming session, or a
+    full house of video calls at once.
+  </p>
+
+  <h2>What Meter measures</h2>
+  <p>
+    A complete internet speed test is about far more than download speed. Every time you press GO,
+    Meter records:
+  </p>
+  <ul>
+    <li><strong>Download speed</strong> — how quickly data reaches your device, in Mbps.</li>
+    <li><strong>Upload speed</strong> — how fast you can send data, which matters for calls, backups and sharing files.</li>
+    <li><strong>Ping</strong> — the round-trip delay to the server while your line is idle.</li>
+    <li><strong>Jitter</strong> — how much that delay varies, a strong predictor of choppy calls.</li>
+    <li><strong>Packet loss</strong> — an estimate of how many probes fail to make the round trip.</li>
+    <li><strong>Latency under load</strong> — how much your ping rises while the connection is busy, the effect known as bufferbloat.</li>
+  </ul>
+  <p>
+    That last measurement is where Meter differs most from a typical test. We keep measuring latency
+    <em>while</em> saturating your line, because that is exactly when a connection feels slow even if
+    the headline speed looks great.
+  </p>
+
+  <h2>How it works</h2>
+  <p>
+    Meter runs entirely in your browser. When you start a test, it streams data to and from
+    Cloudflare’s global edge network — the same infrastructure that serves a large share of the web —
+    using several parallel connections to fully saturate your line. It then aggregates the stable
+    portion of each run so momentary spikes don’t distort your result. Because everything happens
+    over standard web connections, the same test works on Windows, macOS, Android, iOS and
+    Chromebooks with nothing to install.
+  </p>
+
+  <h2>Private by default</h2>
+  <p>
+    We think a speed test should respect your privacy. Meter has no accounts, no sign-up wall and no
+    public leaderboard. Your test history is stored locally in your own browser, so it stays on your
+    device unless you choose to export or share it. You can read the full details in our
+    <a href="/privacy">Privacy Policy</a>.
+  </p>
+
+  <h2>Fast, light and free</h2>
+  <p>
+    Meter is a static, near-zero-framework page engineered to load instantly and start testing the
+    moment you tap GO. It’s free to use, with no ads getting in the way of your result. We’d rather
+    earn a bookmark than an impression.
+  </p>
+
+  <h2>Get in touch</h2>
+  <p>
+    Have a question, a bug report or an idea to make Meter better? We’d genuinely like to hear it.
+    Head to our <a href="/contact">Contact page</a> to reach the team, and take a look at the
+    <a href="/#faq">FAQ</a> if you’re troubleshooting a specific result.
+  </p>
+</Content>

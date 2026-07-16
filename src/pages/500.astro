@@ -1,0 +1,11 @@
+---
+import Error from '../layouts/Error.astro';
+---
+
+<Error
+  code={500}
+  label="Server error"
+  heading="Something broke on our end."
+  body="This one’s on us, not your connection. Give it a moment and try again — the test should be back shortly."
+  path="/500"
+/>

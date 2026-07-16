@@ -1,46 +1,11 @@
 ---
-import Base from '../layouts/Base.astro';
-import Nav from '../components/Nav.astro';
-import Footer from '../components/Footer.astro';
+import Error from '../layouts/Error.astro';
 ---
 
-<Base title="Page not found — Meter Speed Test" path="/404" noindex={true}>
-  <Nav />
-  <main id="main" class="notfound">
-    <div class="container-page notfound__inner">
-      <span class="eyebrow">404</span>
-      <h1 class="notfound__title">This page took a wrong turn.</h1>
-      <p class="notfound__body">
-        The link may be broken or the page may have moved. Let’s get you back to testing.
-      </p>
-      <a href="/" class="btn btn-primary">Back to the Speed Test</a>
-    </div>
-  </main>
-  <Footer />
-</Base>
-
-<style>
-  .notfound {
-    min-height: 60vh;
-    display: flex;
-    align-items: center;
-  }
-  .notfound__inner {
-    text-align: center;
-    padding-block: 80px;
-  }
-  .notfound__title {
-    margin-top: 12px;
-    font-size: clamp(28px, 5vw, 44px);
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    color: var(--text);
-  }
-  .notfound__body {
-    margin: 14px auto 28px;
-    max-width: 44ch;
-    color: var(--text-muted);
-    font-size: 16px;
-    line-height: 1.55;
-  }
-</style>
+<Error
+  code={404}
+  label="Page not found"
+  heading="This page took a wrong turn."
+  body="The link may be broken or the page may have moved. Let’s get you back to testing."
+  path="/404"
+/>

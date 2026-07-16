@@ -78,13 +78,43 @@ const seoFaqs = [
   },
 ];
 
+// Meter-specific questions that already led the "Questions, answered." accordion,
+// kept as data so the visible list and the FAQPage schema share one source.
+const curatedFaqs = [
+  {
+    q: 'How does Meter measure my speed?',
+    a: 'Meter runs entirely in your browser. It streams data to and from Cloudflare’s global edge network — the same infrastructure that serves a large share of the web — using several parallel connections to fully saturate your line, then aggregates the stable portion of each run.',
+  },
+  {
+    q: 'What is latency under load (bufferbloat)?',
+    a: 'It’s how much your ping rises when the connection is busy. A line can look fast yet feel terrible on calls because latency balloons during uploads or downloads. Meter grades this A+ to F so you can spot it.',
+  },
+  {
+    q: 'Why is my result different from my plan’s speed?',
+    a: 'Wi-Fi, the device you’re on, time of day, VPNs and background apps all cost speed. For the truest number, test over a wired connection with other devices idle, and run it a few times.',
+  },
+  {
+    q: 'Is packet loss really measured in a browser?',
+    a: 'Browsers can’t see raw packets, so Meter estimates loss from probes that fail or time out during the test. Treat it as a stability signal rather than a lab-grade figure — that’s why it’s labelled an estimate.',
+  },
+  {
+    q: 'How much data does a test use?',
+    a: 'Meter stops each phase the moment your speed stabilises, so a Balanced run usually finishes in about ten seconds and moves 100–400 MB depending on how fast your line is. On a metered or mobile plan, choose Quick.',
+  },
+];
+
+// One unified list drives both the visible accordion and the FAQPage structured
+// data, so on-page content and schema can never drift apart. The curated Meter
+// questions lead; the Speed Test guide questions follow.
+const faqs = [...curatedFaqs, ...seoFaqs];
+
 const faqJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: seoFaqs.map((f) => ({
+  mainEntity: faqs.map((f) => ({
     '@type': 'Question',
     name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: `<p>${f.a}</p>` },
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
   })),
 };
 
@@ -644,29 +674,18 @@ const homeSchemas = [
               is. On a metered or mobile plan, choose Quick.
             </div>
           </details>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─────────────────────────── Speed Test FAQ (SEO) ─────────────────────────── -->
-    <section class="section" id="speed-test-faq" aria-labelledby="seo-faq-h">
-      <div class="container-page container-narrow">
-        <div class="section__head">
-          <span class="eyebrow">Speed Test guide</span>
-          <h2 id="seo-faq-h" class="section__title">Speed Test — frequently asked questions</h2>
-        </div>
-        <div class="seo-faq">
           {
             seoFaqs.map((f) => (
-              <article class="seo-faq__item">
-                <h3 class="seo-faq__q">{f.q}</h3>
-                <p class="seo-faq__a">{f.a}</p>
-              </article>
+              <details class="faq__item">
+                <summary class="faq__q">{f.q}</summary>
+                <div class="faq__a">{f.a}</div>
+              </details>
             ))
           }
         </div>
       </div>
     </section>
+
   </main>
 
   <script type="application/ld+json" is:inline set:html={JSON.stringify(faqJsonLd)} />
@@ -1599,35 +1618,6 @@ const homeSchemas = [
     line-height: 1.6;
     color: var(--text-muted);
     max-width: 68ch;
-    text-wrap: pretty;
-  }
-
-  /* ── Speed Test FAQ (SEO) ─────────────────────────── */
-  /* Answers stay visible (no accordion) so featured-snippet crawlers see them. */
-  .seo-faq {
-    display: flex;
-    flex-direction: column;
-  }
-  .seo-faq__item {
-    padding: 22px 0;
-    border-top: 1px solid var(--hairline);
-  }
-  .seo-faq__item:last-child {
-    border-bottom: 1px solid var(--hairline);
-  }
-  .seo-faq__q {
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--text);
-    text-wrap: balance;
-  }
-  .seo-faq__a {
-    margin-top: 8px;
-    font-size: 14.5px;
-    line-height: 1.65;
-    color: var(--text-muted);
-    max-width: 72ch;
     text-wrap: pretty;
   }
 

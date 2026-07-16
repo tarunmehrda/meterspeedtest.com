@@ -8,6 +8,9 @@ export default defineConfig({
   site: 'https://meterspeedtest.com',
   integrations: [
     sitemap({
+      // Keep noindex error pages (/400, /403, /503, …) out of the sitemap.
+      // Astro already omits the special 404/500 routes automatically.
+      filter: (page) => !/\/[45]\d\d\/?$/.test(page),
       // Homepage is the priority landing target; supporting pages rank below it.
       serialize(item) {
         item.changefreq = 'weekly';

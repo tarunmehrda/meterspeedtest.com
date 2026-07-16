@@ -1,0 +1,11 @@
+---
+import Error from '../layouts/Error.astro';
+---
+
+<Error
+  code={400}
+  label="Bad request"
+  heading="Something about that request didn’t add up."
+  body="The server couldn’t make sense of it — a malformed link or an expired one is the usual cause. Try again from the start."
+  path="/400"
+/>

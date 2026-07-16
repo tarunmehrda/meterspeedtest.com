@@ -1,0 +1,59 @@
+---
+import Base from './Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  /** HTTP status code shown as the eyebrow, e.g. 500. */
+  code: number;
+  /** Short status label used in the <title>, e.g. 'Server error'. */
+  label: string;
+  /** Big headline for the page. */
+  heading: string;
+  /** Explanatory paragraph under the headline. */
+  body: string;
+  /** Route this page lives at, e.g. '/500'. Drives canonical + noindex. */
+  path: string;
+}
+
+const { code, label, heading, body, path } = Astro.props;
+---
+
+<Base title={`${label} — Meter Speed Test`} path={path} noindex={true}>
+  <Nav />
+  <main id="main" class="errpage">
+    <div class="container-page errpage__inner">
+      <span class="eyebrow">{code}</span>
+      <h1 class="errpage__title">{heading}</h1>
+      <p class="errpage__body">{body}</p>
+      <a href="/" class="btn btn-primary">Back to the Speed Test</a>
+    </div>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .errpage {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+  }
+  .errpage__inner {
+    text-align: center;
+    padding-block: 80px;
+  }
+  .errpage__title {
+    margin-top: 12px;
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  .errpage__body {
+    margin: 14px auto 28px;
+    max-width: 44ch;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+</style>

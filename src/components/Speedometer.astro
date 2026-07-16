@@ -3,12 +3,11 @@ import { GAUGE, arcPath, speedTicks, pointAt } from '../lib/gauge';
 
 const ticks = speedTicks();
 const path = arcPath();
-const needleTip = pointAt(0); // placeholder; rotated at runtime
 const cx = GAUGE.cx;
 const cy = GAUGE.cy;
 ---
 
-<div class="gauge" data-gauge>
+<div class="gauge" data-gauge data-phase="idle">
   <!-- Decorative: the accessible readout is the live status region + metric cards. -->
   <svg class="gauge__svg" viewBox="0 0 320 320" aria-hidden="true">
     <defs>
@@ -17,12 +16,20 @@ const cy = GAUGE.cy;
         <stop offset="45%" class="arc-stop arc-stop--b" />
         <stop offset="100%" class="arc-stop arc-stop--c" />
       </linearGradient>
+      <linearGradient id="needleGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="var(--text-faint)" stop-opacity="0.1" />
+        <stop offset="30%" stop-color="var(--text)" stop-opacity="0.8" />
+        <stop offset="100%" stop-color="var(--text)" stop-opacity="1" />
+      </linearGradient>
       <filter id="gaugeGlow" x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="4" result="b" />
         <feMerge>
           <feMergeNode in="b" />
           <feMergeNode in="SourceGraphic" />
         </feMerge>
+      </filter>
+      <filter id="needleShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.4"/>
       </filter>
     </defs>
 
@@ -73,20 +80,30 @@ const cy = GAUGE.cy;
     <g id="gauge-needle" transform={`rotate(-135 ${cx} ${cy})`}>
       <path
         class="gauge__needle"
-        d={`M ${cx - 3.2} ${cy} L ${cx} ${cy - (GAUGE.r - 8)} L ${cx + 3.2} ${cy} Z`}
+        d={`M ${cx - 3.5} ${cy + 15} L ${cx - 1} ${cy - (GAUGE.r - 12)} A 1 1 0 0 1 ${cx + 1} ${cy - (GAUGE.r - 12)} L ${cx + 3.5} ${cy + 15} Z`}
+        fill="url(#needleGrad)"
+        filter="url(#needleShadow)"
       />
     </g>
-    <circle class="gauge__hub-outer" cx={cx} cy={cy} r="12" />
-    <circle class="gauge__hub" cx={cx} cy={cy} r="6" />
+    <circle class="gauge__hub-outer" cx={cx} cy={cy} r="14" />
+    <circle class="gauge__hub-middle" cx={cx} cy={cy} r="8" fill="var(--surface)" stroke="var(--hairline-strong)" stroke-width="1.5" />
+    <circle class="gauge__hub" cx={cx} cy={cy} r="4" fill="var(--text)" />
   </svg>
 
-  <div class="gauge__readout">
-    <div id="gauge-phase" class="eyebrow gauge__phase">Ready</div>
-    <div class="gauge__value">
-      <span id="gauge-value" class="tnum">0.0</span>
+  <!-- Large circular GO button in the center when idle -->
+  <button type="button" id="go-btn" class="go-btn">
+    <span class="go-btn__text">GO</span>
+  </button>
+
+  <!-- Live readout positioned at the lower half of the dial -->
+  <div class="gauge__readout" id="gauge-readout" hidden>
+    <div class="gauge__value-wrap">
+      <span id="gauge-value" class="tnum">0.00</span>
+    </div>
+    <div class="gauge__unit-wrap">
+      <span id="gauge-phase-icon" class="gauge__phase-icon"></span>
       <span id="gauge-unit" class="gauge__unit">Mbps</span>
     </div>
-    <div id="gauge-sub" class="gauge__sub">Press Start to begin</div>
   </div>
 </div>
 
@@ -94,15 +111,27 @@ const cy = GAUGE.cy;
   .gauge {
     position: relative;
     isolation: isolate;
-    width: min(100%, 420px);
+    width: min(100%, 360px);
     aspect-ratio: 1 / 1;
     margin-inline: auto;
+
+    animation: gaugeFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 
     /* Arc gradient per phase — morphs via stop-color transitions. */
     --arc-a: var(--color-cyan);
     --arc-b: var(--color-brand-blue);
     --arc-c: var(--color-violet);
     --glow: var(--color-brand-blue);
+  }
+  @keyframes gaugeFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
   }
   .gauge[data-phase='latency'] {
     --arc-a: var(--color-g-ship-end);
@@ -115,6 +144,46 @@ const cy = GAUGE.cy;
     --arc-b: var(--color-violet);
     --arc-c: var(--color-pink);
     --glow: var(--color-violet);
+  }
+
+  /* GO Button styling */
+  .go-btn {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--surface) 40%, var(--surface-soft-2) 100%);
+    border: 3.5px solid var(--color-brand-blue);
+    box-shadow: 0 0 28px rgba(0, 112, 243, 0.35), inset 0 0 16px rgba(0, 112, 243, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.35s var(--ease-out-quint);
+  }
+  .go-btn:hover {
+    transform: scale(1.08);
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 38px rgba(80, 227, 194, 0.55), inset 0 0 22px rgba(80, 227, 194, 0.15);
+  }
+  .go-btn:active {
+    transform: scale(0.96);
+  }
+  .go-btn__text {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    transition: color 0.3s;
+  }
+  .go-btn:hover .go-btn__text {
+    color: var(--color-cyan-deep);
+  }
+  .go-btn[hidden] {
+    display: none !important;
   }
 
   /* Soft breathing halo behind the dial while a test runs. */
@@ -172,33 +241,57 @@ const cy = GAUGE.cy;
     stroke: var(--track);
     stroke-width: 14;
     stroke-linecap: round;
+    /* Power-on: the ring traces itself into place on first paint. */
+    stroke-dasharray: 1000;
+    animation: trackDraw 1.15s var(--ease-out-quint) 0.12s both;
   }
-  /* No CSS transition here — the JS spring drives dashoffset every frame. */
+  @keyframes trackDraw {
+    from {
+      stroke-dashoffset: 1000;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  .gauge__ticks {
+    animation: gaugePartFade 0.9s ease 0.62s both;
+  }
+  @keyframes gaugePartFade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
   .gauge__value-arc {
     fill: none;
     stroke-width: 14;
     stroke-linecap: round;
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
+    transition: none;
   }
 
   .tick {
     stroke: var(--hairline-strong);
-    stroke-width: 2;
+    stroke-width: 1.5;
     stroke-linecap: round;
   }
   .tick--major {
     stroke: var(--hairline-strongest);
-    stroke-width: 2.5;
+    stroke-width: 2.2;
   }
   .tick__label {
-    fill: var(--text-faint);
-    font-family: var(--font-mono);
+    fill: var(--text-muted);
+    font-family: var(--font-sans);
+    font-weight: 500;
     font-size: 11px;
   }
 
-  .gauge__needle {
-    fill: var(--text);
+  #gauge-needle {
+    transform-origin: 160px 160px;
+    transform: rotate(-135deg);
     transition: none;
   }
   .gauge__hub-outer {
@@ -206,49 +299,81 @@ const cy = GAUGE.cy;
     stroke: var(--hairline-strong);
     stroke-width: 1.5;
   }
-  .gauge__hub {
-    fill: var(--text);
-  }
 
+  /* Live Readout styling */
   .gauge__readout {
     position: absolute;
-    inset: 0;
+    left: 0;
+    right: 0;
+    bottom: 23%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 0px;
     pointer-events: none;
-    padding-top: 18%;
+    z-index: 5;
   }
-  .gauge__phase {
-    margin-bottom: 4px;
-    transition: color 0.2s;
+  .gauge__readout[hidden] {
+    display: none !important;
   }
-  .gauge__value {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+  .gauge__value-wrap {
     line-height: 1;
   }
   #gauge-value {
-    font-size: clamp(44px, 12vw, 68px);
-    font-weight: 600;
-    letter-spacing: -0.03em;
+    font-size: 46px;
+    font-weight: 300;
+    font-family: var(--font-sans);
+    letter-spacing: -0.02em;
     color: var(--text);
   }
+  .gauge__unit-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: -2px;
+  }
   .gauge__unit {
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     color: var(--text-faint);
   }
-  .gauge__sub {
-    margin-top: 6px;
-    font-size: 13px;
-    color: var(--text-faint);
-    max-width: 60%;
-    text-align: center;
-    text-wrap: balance;
+
+  /* Phase indicator icon (arrow in a circle) */
+  .gauge__phase-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .gauge__phase-icon::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 3.5px solid transparent;
+    border-right: 3.5px solid transparent;
+    display: inline-block;
+  }
+  .gauge[data-phase='download'] .gauge__phase-icon {
+    background-color: var(--color-cyan-deep);
+  }
+  .gauge[data-phase='download'] .gauge__phase-icon::before {
+    border-top: 5px solid #fff;
+    border-bottom: 0;
+    margin-top: 1px;
+  }
+  .gauge[data-phase='upload'] .gauge__phase-icon {
+    background-color: var(--color-brand-blue);
+  }
+  .gauge[data-phase='upload'] .gauge__phase-icon::before {
+    border-bottom: 5px solid #fff;
+    border-top: 0;
+    margin-bottom: 1px;
   }
 
   @media (prefers-reduced-motion: reduce) {

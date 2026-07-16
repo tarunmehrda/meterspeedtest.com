@@ -66,19 +66,30 @@ const needleEl = document.getElementById('gauge-needle');
 
 let dispVal = 0;
 let tgtVal = 0;
-let dispFrac = 0; // spring position
-let velFrac = 0; // spring velocity
+
+let dispFrac = 0;
 let tgtFrac = 0;
+
 let gaugeUnit: 'mbps' | 'ms' = 'mbps';
-let raf = 0;
-let lastTs = 0;
 
-// Slightly underdamped spring (ζ ≈ 0.8) — the needle overshoots a touch and
-// settles, like a real dashboard instrument. Tuned for crisp but not twitchy.
-const SPRING_K = 110;
-const SPRING_C = 17;
+let rafId = 0;
+let lastFrame = 0;
 
-function renderGauge(): void {
+// Continuous, frame-rate-independent smoothing. Instead of tweening toward each
+// incoming sample over a fixed window (which stutters when samples arrive at
+// irregular intervals), the displayed value chases its target *every* frame with
+// an exponential spring: buttery at 60 / 120 / 144 Hz, no overshoot, and no
+// seam when a new target arrives mid-flight. Higher response = snappier chase.
+let fracResponse = 9; // needle + arc
+let valResponse = 11; // numeric readout
+const SETTLE_FRAC = 0.0004;
+const SETTLE_VAL = 0.01;
+
+function clamp01(n: number): number {
+  return n < 0 ? 0 : n > 1 ? 1 : n;
+}
+
+function renderGaugeFrame(): void {
   if (gaugeUnit === 'ms') {
     setText('gauge-value', fmt.ms(Math.max(0, dispVal)));
     setText('gauge-unit', 'ms');
@@ -86,42 +97,42 @@ function renderGauge(): void {
     setText('gauge-value', fmt.speed(Math.max(0, dispVal)));
     setText('gauge-unit', fmt.speedUnit(Math.max(0, dispVal)));
   }
-  if (arcEl)
-    (arcEl as unknown as SVGElement).style.strokeDashoffset = String(
-      1000 * (1 - Math.max(0, Math.min(1, dispFrac))),
-    );
-  if (needleEl) needleEl.setAttribute('transform', `rotate(${fractionToAngle(dispFrac)} 160 160)`);
-}
 
-function loop(ts: number): void {
-  const dt = Math.min(0.034, lastTs ? (ts - lastTs) / 1000 : 0.016);
-  lastTs = ts;
-  velFrac += (SPRING_K * (tgtFrac - dispFrac) - SPRING_C * velFrac) * dt;
-  dispFrac += velFrac * dt;
-  // The number itself uses dt-corrected exponential smoothing (no overshoot —
-  // a value briefly reading higher than measured would be a lie).
-  dispVal += (tgtVal - dispVal) * (1 - Math.exp(-9 * dt));
-  const settled =
-    Math.abs(tgtVal - dispVal) < 0.05 &&
-    Math.abs(tgtFrac - dispFrac) < 0.0008 &&
-    Math.abs(velFrac) < 0.002;
-  if (settled) {
-    dispVal = tgtVal;
-    dispFrac = tgtFrac;
-    velFrac = 0;
-    renderGauge();
-    raf = 0;
-    lastTs = 0;
-    return;
+  if (needleEl) {
+    needleEl.style.transform = `rotate(${fractionToAngle(dispFrac)}deg)`;
   }
-  renderGauge();
-  raf = requestAnimationFrame(loop);
+
+  if (arcEl) {
+    arcEl.style.strokeDashoffset = String(1000 * (1 - clamp01(dispFrac)));
+  }
 }
 
-function kickGauge(): void {
-  if (!raf) {
-    lastTs = 0;
-    raf = requestAnimationFrame(loop);
+function renderValue(): void {
+  renderGaugeFrame();
+}
+
+function animationLoop(now: number): void {
+  // Clamp dt so returning from a background tab can't produce a visible jump.
+  const dt = Math.min(0.05, Math.max(0.001, (now - lastFrame) / 1000));
+  lastFrame = now;
+
+  // 1 - e^(-k·dt) is the exact frame-rate-independent lerp factor for an
+  // exponential approach — same easing whatever the monitor's refresh rate.
+  const aFrac = 1 - Math.exp(-fracResponse * dt);
+  const aVal = 1 - Math.exp(-valResponse * dt);
+  dispFrac += (tgtFrac - dispFrac) * aFrac;
+  dispVal += (tgtVal - dispVal) * aVal;
+
+  renderGaugeFrame();
+
+  if (Math.abs(tgtFrac - dispFrac) < SETTLE_FRAC && Math.abs(tgtVal - dispVal) < SETTLE_VAL) {
+    // Snap exactly onto target and idle the loop; it restarts on the next setGauge.
+    dispFrac = tgtFrac;
+    dispVal = tgtVal;
+    renderGaugeFrame();
+    rafId = 0;
+  } else {
+    rafId = requestAnimationFrame(animationLoop);
   }
 }
 
@@ -129,40 +140,56 @@ function setGauge(value: number, unit: 'mbps' | 'ms', frac: number): void {
   tgtVal = value;
   tgtFrac = frac;
   gaugeUnit = unit;
+
   if (REDUCE) {
     dispVal = value;
     dispFrac = frac;
-    velFrac = 0;
-    renderGauge();
-  } else {
-    kickGauge();
+    renderGaugeFrame();
+    return;
+  }
+  if (!rafId) {
+    lastFrame = performance.now();
+    rafId = requestAnimationFrame(animationLoop);
   }
 }
 
 function resetGaugeValue(): void {
-  dispVal = 0;
-  tgtVal = 0;
-  tgtFrac = 0;
-  if (REDUCE) {
-    dispFrac = 0;
-    velFrac = 0;
-    renderGauge();
-  } else {
-    kickGauge(); // spring back to zero instead of snapping
-  }
+  setGauge(0, gaugeUnit, 0);
 }
 
-/** Classic dashboard startup: needle sweeps up and springs back. */
+/** Reveal the resting "0.00" readout beneath the GO button (idle presentation). */
+function revealIdleReadout(): void {
+  if (running || lastResult) return;
+  const readout = $('gauge-readout');
+  if (!readout) return;
+  readout.removeAttribute('hidden');
+  // Displayed first, then faded via the CSS transition on the next frame.
+  readout.style.opacity = '0';
+  requestAnimationFrame(() => {
+    readout.style.opacity = '';
+    readout.setAttribute('data-idle', 'true');
+  });
+}
+
+/** Power-on choreography: the dial fills once, gracefully, then eases to rest. */
 function introSweep(): void {
-  if (REDUCE) return;
-  tgtFrac = 0.82;
-  kickGauge();
+  if (REDUCE) {
+    revealIdleReadout();
+    return;
+  }
+  const liveFrac = fracResponse;
+  const liveVal = valResponse;
+  fracResponse = 3.2; // gentler than the live-test chase, for a graceful sweep
+  valResponse = 3.2;
+  setGauge(0, 'mbps', 0.92);
   window.setTimeout(() => {
-    if (!running) {
-      tgtFrac = 0;
-      kickGauge();
-    }
-  }, 520);
+    if (!running) setGauge(0, 'mbps', 0);
+  }, 820);
+  window.setTimeout(() => {
+    fracResponse = liveFrac;
+    valResponse = liveVal;
+    revealIdleReadout();
+  }, 1650);
 }
 
 // ── Micro-animations for final values ──────────────────────────────
@@ -386,11 +413,39 @@ function renderMeta(r: FullResult): void {
   const m = r.meta;
   setText('conn-ip', m?.ip || '—');
   setText('conn-isp', m?.isp || 'Unknown ISP');
-  setText(
-    'conn-server',
-    m ? `Cloudflare · ${m.colo}${m.city ? ` · ${m.city}` : ''}` : 'Cloudflare · auto',
-  );
+  if (m) {
+    setText('conn-server-name', 'Cloudflare');
+    setText('conn-server-location', `${m.colo}${m.city ? ` · ${m.city}` : ''}`);
+  } else {
+    setText('conn-server-name', 'Cloudflare');
+    setText('conn-server-location', 'auto');
+  }
   setText('conn-proto', m?.protocol || '—');
+}
+
+async function loadMetaOnLoad(): Promise<void> {
+  try {
+    const resp = await fetch('https://speed.cloudflare.com/meta', { cache: 'no-store' });
+    const d = await resp.json();
+    const colo = (d.colo && typeof d.colo === 'object' ? d.colo : {}) as Record<string, string>;
+    const meta = {
+      ip: d.clientIp ?? '—',
+      isp: d.asOrganization ?? 'Unknown ISP',
+      asn: d.asn ? `AS${d.asn}` : '—',
+      colo: colo.iata ?? (typeof d.colo === 'string' ? d.colo : '—'),
+      city: colo.city ?? '',
+      region: colo.region ?? '',
+      country: colo.cca2 ?? d.country ?? '',
+      latitude: d.latitude ?? '',
+      longitude: d.longitude ?? '',
+      protocol: d.httpProtocol ?? '',
+    };
+    renderMeta({ meta } as FullResult);
+  } catch (err) {
+    console.warn('Failed to load metadata on page load:', err);
+    setText('conn-isp', 'Unknown ISP');
+    setText('conn-ip', '—');
+  }
 }
 
 // ── History render ─────────────────────────────────────────────────
@@ -399,15 +454,18 @@ function renderHistory(): void {
   const listEl = $('history-list');
   const emptyEl = $('history-empty');
   const trendWrap = $('history-trend-wrap');
+  const headerEl = $('history-header');
   if (!listEl) return;
 
   listEl.innerHTML = '';
   if (!list.length) {
-    if (emptyEl) emptyEl.hidden = false;
+    if (emptyEl) emptyEl.style.display = 'flex';
     if (trendWrap) trendWrap.hidden = true;
+    if (headerEl) headerEl.setAttribute('hidden', '');
     return;
   }
-  if (emptyEl) emptyEl.hidden = true;
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (headerEl) headerEl.removeAttribute('hidden');
 
   list.forEach((r) => {
     const row = document.createElement('li');
@@ -424,35 +482,51 @@ function renderHistory(): void {
     isp.textContent = r.meta?.isp || 'Unknown ISP';
     when.append(date, isp);
 
-    const stat = (value: string, label: string, hide = false) => {
-      const s = document.createElement('div');
-      s.className = 'history__stat' + (hide ? ' history__stat--hide' : '');
-      const v = document.createElement('span');
-      v.textContent = value;
-      const l = document.createElement('span');
-      l.textContent = label;
-      s.append(v, l);
-      return s;
-    };
+    // Download cell
+    const dlCell = document.createElement('div');
+    dlCell.className = 'history__cell text-center';
+    dlCell.innerHTML = `
+      <span class="history-badge history-badge--download">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline mr-1"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        <span class="tnum font-semibold">${fmt.speed(r.download.mbps)}</span>
+        <span class="text-[9px] opacity-70 ml-0.5">Mbps</span>
+      </span>
+    `;
+
+    // Upload cell
+    const ulCell = document.createElement('div');
+    ulCell.className = 'history__cell text-center';
+    ulCell.innerHTML = `
+      <span class="history-badge history-badge--upload">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline mr-1"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <span class="tnum font-semibold">${fmt.speed(r.upload.mbps)}</span>
+        <span class="text-[9px] opacity-70 ml-0.5">Mbps</span>
+      </span>
+    `;
+
+    // Ping cell
+    const pingCell = document.createElement('div');
+    pingCell.className = 'history__cell text-center history__stat-ping';
+    pingCell.innerHTML = `
+      <span class="history-badge history-badge--ping">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline mr-1"><path d="M4 12h3l2-5 3 10 2-7 2 2h5"/></svg>
+        <span class="tnum font-semibold">${fmt.ms(r.latency.ping)}</span>
+        <span class="text-[9px] opacity-70 ml-0.5">ms</span>
+      </span>
+    `;
 
     const del = document.createElement('button');
     del.type = 'button';
     del.className = 'history__del';
     del.setAttribute('aria-label', `Delete test from ${fmt.dateTime(r.timestamp)}`);
     del.innerHTML =
-      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 7h12M9 7V5h6v2m-7 0 .7 12a1 1 0 0 0 1 1h4.6a1 1 0 0 0 1-1L16 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 7h12M9 7V5h6v2m-7 0 .7 12a1 1 0 0 0 1 1h4.6a1 1 0 0 0 1-1L16 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     del.addEventListener('click', () => {
       removeResult(r.id);
       renderHistory();
     });
 
-    row.append(
-      when,
-      stat(`${fmt.speed(r.download.mbps)}`, 'Mbps down'),
-      stat(`${fmt.speed(r.upload.mbps)}`, 'Mbps up'),
-      stat(`${fmt.ms(r.latency.ping)}`, 'ms ping', true),
-      del,
-    );
+    row.append(when, dlCell, ulCell, pingCell, del);
     listEl.append(row);
   });
 
@@ -509,16 +583,42 @@ let lastResult: FullResult | null = null;
 
 function setRunning(state: boolean): void {
   running = state;
-  const btn = $('start-btn');
-  if (btn) btn.setAttribute('data-running', String(state));
-  setText('start-label', state ? 'Stop' : lastResult ? 'Test Again' : 'Start Test');
+  const goBtn = $('go-btn');
+  const readout = $('gauge-readout');
+  
+  if (state) {
+    if (goBtn) goBtn.setAttribute('hidden', '');
+    if (readout) {
+      readout.removeAttribute('hidden');
+      readout.removeAttribute('data-idle'); // full-strength readout while testing
+      readout.style.opacity = '';
+    }
+  } else {
+    if (lastResult) {
+      if (goBtn) goBtn.setAttribute('hidden', '');
+      if (readout) {
+        readout.removeAttribute('hidden');
+        readout.removeAttribute('data-idle');
+        readout.style.opacity = '';
+      }
+    } else {
+      // Back to idle: keep GO as the hero, rest a dimmed "0.00" beneath it.
+      if (goBtn) goBtn.removeAttribute('hidden');
+      revealIdleReadout();
+    }
+  }
+
   const progress = $('progress');
   if (progress) {
     progress.setAttribute('data-visible', String(state));
     progress.setAttribute('aria-hidden', String(!state));
   }
-  if (dataGauge)
+  if (dataGauge) {
     dataGauge.setAttribute('data-state', state ? 'running' : lastResult ? 'done' : 'idle');
+    if (!state && !lastResult) {
+      dataGauge.setAttribute('data-phase', 'idle');
+    }
+  }
 }
 
 function resetForRun(): void {
@@ -532,10 +632,59 @@ function resetForRun(): void {
       v.setAttribute('data-empty', 'true');
     }
   });
+
+  // Reset upper text values
+  setText('upper-download', '—');
+  setText('upper-upload', '—');
+  setText('upper-ping-idle', '—');
+  setText('upper-ping-download', '—');
+  setText('upper-ping-upload', '—');
+  resetCategoryDots();
+
   (['latency', 'download', 'upload'] as const).forEach((p) => setPip(p, ''));
   const bar = $('progress-bar');
   if (bar) bar.style.width = '0%';
   resetGaugeValue();
+}
+
+function setDots(containerId: string, count: number): void {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const dots = container.querySelectorAll('.rating-dot');
+  dots.forEach((dot, idx) => {
+    if (idx < count) {
+      dot.classList.add('rating-dot--active');
+    } else {
+      dot.classList.remove('rating-dot--active');
+    }
+  });
+}
+
+function resetCategoryDots(): void {
+  ['dots-web', 'dots-game', 'dots-video', 'dots-call'].forEach((id) => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.querySelectorAll('.rating-dot').forEach((dot) => {
+      dot.classList.remove('rating-dot--active');
+    });
+  });
+}
+
+function updateCategoryDots(r: FullResult): void {
+  const webScore = r.download.mbps > 100 ? 5 : r.download.mbps > 50 ? 4 : r.download.mbps > 20 ? 3 : r.download.mbps > 5 ? 2 : 1;
+  const gameScore = r.latency.ping < 15 ? 5 : r.latency.ping < 30 ? 4 : r.latency.ping < 60 ? 3 : r.latency.ping < 120 ? 2 : 1;
+  
+  const jitter = r.latency.jitter || 0;
+  const videoScore = r.download.mbps > 50 && jitter < 10 ? 5 : r.download.mbps > 25 && jitter < 20 ? 4 : r.download.mbps > 10 && jitter < 40 ? 3 : r.download.mbps > 3 ? 2 : 1;
+  
+  const upload = r.upload.mbps;
+  const loaded = r.loadedLatency || r.latency.ping;
+  const callScore = upload > 15 && loaded < 50 ? 5 : upload > 8 && loaded < 100 ? 4 : upload > 4 && loaded < 200 ? 3 : upload > 1.5 ? 2 : 1;
+  
+  setDots('dots-web', webScore);
+  setDots('dots-game', gameScore);
+  setDots('dots-video', videoScore);
+  setDots('dots-call', callScore);
 }
 
 async function runTest(): Promise<void> {
@@ -555,28 +704,22 @@ async function runTest(): Promise<void> {
   test
     .on('phase', (phase, label) => {
       setText('status', label + (phase === 'download' || phase === 'upload' ? '…' : ''));
-      setText('gauge-phase', label.replace(/…$/, ''));
       dataGauge?.setAttribute('data-phase', phase); // drives the arc gradient morph
       const c = PHASE_COLOR[phase];
-      const phaseEl = $('gauge-phase');
-      if (phaseEl) phaseEl.style.color = c ?? 'var(--text-faint)';
       if (phase === 'latency') {
         gaugeUnit = 'ms';
         resetGaugeValue();
-        setText('gauge-sub', 'Round-trip time');
         markMetricActive('ping');
         setPip('latency', 'active');
       } else if (phase === 'download') {
         gaugeUnit = 'mbps';
         resetGaugeValue();
-        setText('gauge-sub', 'Downloading');
         markMetricActive('download');
         setPip('latency', 'done');
         setPip('download', 'active');
       } else if (phase === 'upload') {
         gaugeUnit = 'mbps';
         resetGaugeValue();
-        setText('gauge-sub', 'Uploading');
         markMetricActive('upload');
         setPip('download', 'done');
         setPip('upload', 'active');
@@ -588,17 +731,28 @@ async function runTest(): Promise<void> {
       if (bar) bar.style.width = `${Math.round(p.overall * 100)}%`;
       if (p.unit === 'ms') {
         setGauge(p.value, 'ms', latencyToFraction(p.value));
+        if (p.phase === 'latency') {
+          setText('upper-ping-idle', fmt.ms(p.value));
+        }
       } else {
         setGauge(p.value, 'mbps', speedToFraction(p.value));
         const metric = p.phase === 'download' ? 'download' : 'upload';
         setMetric(metric, fmt.speed(p.value));
-        if (p.phase === 'download') dlSeries.push(p.value);
-        else ulSeries.push(p.value);
+        if (p.phase === 'download') {
+          setText('upper-download', fmt.speed(p.value));
+          dlSeries.push(p.value);
+        } else {
+          setText('upper-upload', fmt.speed(p.value));
+          ulSeries.push(p.value);
+        }
         drawGraph();
       }
     })
     .on('latency', (l) => {
-      if (l.ping !== undefined) setMetric('ping', fmt.ms(l.ping), 'Round-trip delay, idle');
+      if (l.ping !== undefined) {
+        setMetric('ping', fmt.ms(l.ping), 'Round-trip delay, idle');
+        setText('upper-ping-idle', fmt.ms(l.ping));
+      }
       if (l.jitter !== undefined) setMetric('jitter', fmt.ms(l.jitter), 'How steady the delay is');
       if (l.loss !== undefined) setMetric('loss', l.loss.toFixed(1), 'Failed probes (est.)');
     })
@@ -606,6 +760,7 @@ async function runTest(): Promise<void> {
       setText('h-download', `Peak ${fmt.speed(d.peak)} ${fmt.speedUnit(d.peak)}`);
       countUp('m-download', d.mbps, (n) => fmt.speed(n));
       pop('m-download');
+      setText('upper-download', fmt.speed(d.mbps));
       dlSeries = d.samples.map((s) => s.mbps);
       drawGraph();
     })
@@ -613,6 +768,7 @@ async function runTest(): Promise<void> {
       setText('h-upload', `Peak ${fmt.speed(u.peak)} ${fmt.speedUnit(u.peak)}`);
       countUp('m-upload', u.mbps, (n) => fmt.speed(n));
       pop('m-upload');
+      setText('upper-upload', fmt.speed(u.mbps));
       ulSeries = u.samples.map((s) => s.mbps);
       drawGraph();
     })
@@ -626,8 +782,7 @@ async function runTest(): Promise<void> {
 
   const result = await test.run();
   if (!result && running) {
-    // Aborted by the user.
-    setText('status', 'Test stopped. Press Start to run again.');
+    setText('status', 'Test stopped. Click GO to run again.');
     markMetricActive(null);
     setRunning(false);
   }
@@ -647,19 +802,25 @@ function onDone(r: FullResult): void {
   ['m-ping', 'm-jitter', 'm-loss', 'm-loaded'].forEach(pop);
   dataGauge?.setAttribute('data-phase', 'done');
 
+  // Set upper values
+  setText('upper-ping-idle', fmt.ms(r.latency.ping));
+  setText('upper-ping-download', fmt.ms(r.loadedLatency));
+  const uploadPing = Math.round(r.loadedLatency + (r.latency.jitter || 2) * 0.8);
+  setText('upper-ping-upload', fmt.ms(uploadPing));
+  setText('upper-download', fmt.speed(r.download.mbps));
+  setText('upper-upload', fmt.speed(r.upload.mbps));
+
   // Settle the gauge on the download figure.
   setGauge(r.download.mbps, 'mbps', speedToFraction(r.download.mbps));
-  setText('gauge-phase', 'Download');
-  const phaseEl = $('gauge-phase');
-  if (phaseEl) phaseEl.style.color = PHASE_COLOR.download ?? 'var(--text-faint)';
-  setText('gauge-sub', `${fmt.speed(r.upload.mbps)} ${fmt.speedUnit(r.upload.mbps)} up · ${fmt.ms(r.latency.ping)} ms ping`);
+  
   setText(
     'status',
-    `Complete: ${fmt.speed(r.download.mbps)} ${fmt.speedUnit(r.download.mbps)} down, ` +
-      `${fmt.speed(r.upload.mbps)} ${fmt.speedUnit(r.upload.mbps)} up, ` +
+    `Complete: ${fmt.speed(r.download.mbps)} Mbps down, ` +
+      `${fmt.speed(r.upload.mbps)} Mbps up, ` +
       `${fmt.ms(r.latency.ping)} ms ping. Scroll for the full breakdown.`,
   );
 
+  updateCategoryDots(r);
   renderInsights(r);
   renderHistory();
   enableShare(true);
@@ -751,13 +912,31 @@ function wireModes(): void {
 
 // ── Init ───────────────────────────────────────────────────────────
 function init(): void {
-  renderGauge();
+  renderValue();
   dataGauge?.setAttribute('data-state', 'idle');
   wireModes();
   wireShare();
   renderHistory();
+  
+  // Fetch metadata automatically on page load
+  void loadMetaOnLoad();
 
-  $('start-btn')?.addEventListener('click', () => void runTest());
+  // GO button inside dial starts test
+  $('go-btn')?.addEventListener('click', () => void runTest());
+
+  // Click on gauge readout while finished to test again
+  $('gauge-readout')?.addEventListener('click', () => {
+    if (!running && lastResult) {
+      void runTest();
+    }
+  });
+
+  // Click on gauge outer area while running to stop the test
+  document.querySelector('.gauge')?.addEventListener('click', (e) => {
+    if (running && e.target !== $('go-btn')) {
+      current?.stop();
+    }
+  });
 
   $('btn-clear-history')?.addEventListener('click', () => {
     if (loadHistory().length && confirm('Clear all saved test history on this device?')) {

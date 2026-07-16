@@ -11,9 +11,11 @@ export const GAUGE = {
   pathLength: 1000,
 } as const;
 
-/** Log domains keep both slow and gigabit connections readable on one dial. */
-export const SPEED_DOMAIN = { min: 0.3, max: 2000 };
+export const SPEED_DOMAIN = { min: 0, max: 1000 };
 export const LATENCY_DOMAIN = { min: 2, max: 400 };
+
+const scalePoints = [0, 5, 10, 50, 100, 250, 500, 750, 1000];
+const scaleFracs = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0];
 
 function logFraction(value: number, min: number, max: number): number {
   const v = Math.max(min, Math.min(max, value || min));
@@ -23,7 +25,19 @@ function logFraction(value: number, min: number, max: number): number {
 
 export function speedToFraction(mbps: number): number {
   if (mbps <= 0) return 0;
-  return logFraction(mbps, SPEED_DOMAIN.min, SPEED_DOMAIN.max);
+  if (mbps >= 1000) return 1.0;
+  
+  for (let i = 0; i < scalePoints.length - 1; i++) {
+    const p1 = scalePoints[i];
+    const p2 = scalePoints[i + 1];
+    if (mbps >= p1 && mbps <= p2) {
+      const f1 = scaleFracs[i];
+      const f2 = scaleFracs[i + 1];
+      const pct = (mbps - p1) / (p2 - p1);
+      return f1 + pct * (f2 - f1);
+    }
+  }
+  return 1.0;
 }
 
 export function latencyToFraction(ms: number): number {
@@ -59,23 +73,20 @@ export interface Tick {
   labelPos: { x: number; y: number };
 }
 
-/** Fixed log-scale speed ticks for the printed dial. */
+/** Fixed scale speed ticks for the printed dial. */
 export function speedTicks(): Tick[] {
-  const majors = [1, 10, 100, 1000];
-  const minors = [3, 30, 300];
-  const build = (v: number, major: boolean): Tick => {
+  const majors = [0, 5, 10, 50, 100, 250, 500, 750, 1000];
+  const build = (v: number): Tick => {
     const frac = speedToFraction(v);
     return {
-      label: v >= 1000 ? `${v / 1000}G` : String(v),
+      label: String(v),
       frac,
-      major,
-      inner: pointAt(frac, GAUGE.r - (major ? 16 : 9)),
+      major: true,
+      inner: pointAt(frac, GAUGE.r - 8),
       outer: pointAt(frac, GAUGE.r),
-      labelPos: pointAt(frac, GAUGE.r - 34),
+      labelPos: pointAt(frac, GAUGE.r - 22),
     };
   };
-  return [
-    ...majors.map((v) => build(v, true)),
-    ...minors.map((v) => build(v, false)),
-  ].sort((a, b) => a.frac - b.frac);
+  return majors.map(build);
 }
+
